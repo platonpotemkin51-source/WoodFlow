@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}{{ booking.number }} — WoodFlow{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-11">
+
+    <!-- ШАПКА -->
+    <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-bookmark-check"></i> {{ booking.number }}
+                {% if booking.status == 'активная' %}
+                <span class="badge bg-success fs-6">Активная</span>
+                {% elif booking.status == 'отправлена' %}
+                <span class="badge bg-info fs-6">Отправлена</span>
+                {% else %}
+                <span class="badge bg-secondary fs-6">Отменена</span>
+                {% endif %}
+            </h2>
+            <p class="text-muted mb-0">
+                {{ booking.customer_name }} &bull; {{ booking.destination }} &bull;
+                {{ booking.created_at.strftime('%d.%m.%Y %H:%M') }}
+            </p>
+        </div>
+        {% if booking.status == 'активная' %}
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('ship_booking', booking_id=booking.id) }}"
+               class="btn btn-wf-green {{ 'disabled' if booking.pack_count == 0 }}">
+                <i class="bi bi-truck"></i> Отправить
+            </a>
+            <form method="post" action="{{ url_for('cancel_booking', booking_id=booking.id) }}"
+                  onsubmit="return confirm('Отменить бронирование?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-outline-danger"><i class="bi bi-x-lg"></i> Отменить</button>
+            </form>
+        </div>
+        {% endif %}
+        {% if booking.shipment %}
+        <a href="{{ url_for('booking_excel', booking_id=booking.id) }}" class="btn btn-outline-success">
+            <i class="bi bi-file-earmark-excel"></i> Скачать Excel
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- ИТОГИ -->
+    <div class="row g-3 mb-4">
+        <div class="col-auto">
+            <div class="card wf-card px-3 py-2 text-center">
+                <div class="fw-bold fs-5">{{ booking.pack_count }}</div>
+                <div class="small text-muted">пачек</div>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="card wf-card px-3 py-2 text-center">
+                <div class="fw-bold fs-5">{{ booking.total_volume }} м³</div>
+                <div class="small text-muted">объём</div>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="card wf-card px-3 py-2 text-center">
+                <div class="fw-bold fs-5">{{ "{:,.0f}".format(booking.total_price).replace(",", " ") }} ₽</div>
+                <div class="small text-muted">стоимость</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ПАЧКИ В БРОНИРОВАНИИ -->
+    <div class="card wf-card mb-4">
+        <div class="card-header wf-card-header">
+            <i class="bi bi-box-seam"></i> Пачки в бронировании
+        </div>
+        <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0 align-middle">
+            <thead class="wf-thead"><tr>
+                <th>#</th><th>Порода</th><th>Тип</th><th>Сорт</th>
+                <th>Размер</th><th>Кол-во</th><th>Объём</th><th>Цена/м³</th><th>Сумма</th>
+                {% if booking.status == 'активная' %}<th></th>{% endif %}
+            </tr></thead>
+            <tbody>
+            {% for p in booking.packs %}
+            <tr>
+                <td>{{ p.id }}</td>
+                <td>{{ p.species }}</td>
+                <td>{{ p.wood_type }}</td>
+                <td>{{ p.grade }}</td>
+                <td>{{ p.width|int }}×{{ p.thickness|int }}×{{ p.length }}м</td>
+                <td>{{ p.quantity }}</td>
+                <td><b>{{ p.volume }}</b></td>
+                <td>{{ "{:,.0f}".format(p.price_per_m3).replace(",", " ") }}</td>
+                <td>{{ "{:,.0f}".format(p.total_price).replace(",", " ") }}</td>
+                {% if booking.status == 'активная' %}
+                <td>
+                    <form method="post"
+                          action="{{ url_for('remove_pack_from_booking', booking_id=booking.id, pack_id=p.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-sm btn-outline-danger" title="Убрать">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </form>
+                </td>
+                {% endif %}
+            </tr>
+            {% else %}
+            <tr><td colspan="10" class="text-center text-muted py-3">Пачки не добавлены</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <!-- ДОБАВИТЬ ПАЧКИ -->
+    {% if booking.status == 'активная' and available_packs %}
+    <div class="card wf-card">
+        <div class="card-header wf-card-header d-flex justify-content-between align-items-center"
+             data-bs-toggle="collapse" data-bs-target="#availablePacks" style="cursor:pointer">
+            <span><i class="bi bi-plus-circle"></i> Добавить пачки со склада ({{ available_packs|length }})</span>
+            <i class="bi bi-chevron-down"></i>
+        </div>
+        <div id="availablePacks" class="collapse">
+            <div class="card-body p-2">
+                <!-- Быстрый поиск -->
+                <input type="text" id="packSearch" class="form-control form-control-sm mb-2"
+                       placeholder="Поиск по породе, типу, ширине…">
+
+                <form method="post" action="{{ url_for('add_packs_to_booking', booking_id=booking.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="table-responsive" style="max-height:400px; overflow-y:auto;">
+                    <table class="table table-sm table-hover mb-0 align-middle" id="availableTable">
+                        <thead class="wf-thead sticky-top"><tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th>#</th><th>Порода</th><th>Тип</th><th>Сорт</th>
+                            <th>Размер</th><th>Кол-во</th><th>Объём</th><th>Цена/м³</th>
+                        </tr></thead>
+                        <tbody>
+                        {% for p in available_packs %}
+                        <tr class="pack-row">
+                            <td><input type="checkbox" name="pack_ids" value="{{ p.id }}"></td>
+                            <td>{{ p.id }}</td>
+                            <td>{{ p.species }}</td>
+                            <td>{{ p.wood_type }}</td>
+                            <td>{{ p.grade }}</td>
+                            <td>{{ p.width|int }}×{{ p.thickness|int }}×{{ p.length }}м</td>
+                            <td>{{ p.quantity }}</td>
+                            <td>{{ p.volume }}</td>
+                            <td>{{ "{:,.0f}".format(p.price_per_m3).replace(",", " ") }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    </div>
+                    <button type="submit" class="btn btn-wf-green btn-sm mt-2">
+                        <i class="bi bi-plus-lg"></i> Добавить выбранные
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="mt-3">
+        <a href="{{ url_for('bookings') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Назад к списку
+        </a>
+    </div>
+
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Выбрать все
+document.getElementById('selectAll')?.addEventListener('change', function(){
+    document.querySelectorAll('#availableTable input[type=checkbox][name=pack_ids]')
+        .forEach(cb => cb.checked = this.checked);
+});
+
+// Поиск
+document.getElementById('packSearch')?.addEventListener('input', function(){
+    const q = this.value.toLowerCase();
+    document.querySelectorAll('.pack-row').forEach(row => {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

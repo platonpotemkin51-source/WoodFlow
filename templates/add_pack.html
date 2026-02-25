@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Добавить пачку — WoodFlow{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-8">
+    <h2 class="mb-4"><i class="bi bi-plus-circle"></i> Новая пачка</h2>
+    <div class="card wf-card">
+        <div class="card-body">
+            <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Порода *</label>
+                        <input type="text" name="species" class="form-control" required
+                               list="speciesList" placeholder="Сосна">
+                        <datalist id="speciesList">
+                            <option value="Сосна"><option value="Ель">
+                            <option value="Лиственница"><option value="Берёза">
+                            <option value="Дуб"><option value="Осина">
+                        </datalist>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Тип</label>
+                        <input type="text" name="wood_type" class="form-control"
+                               list="typeList" placeholder="Доска обрезная">
+                        <datalist id="typeList">
+                            <option value="Доска обрезная"><option value="Доска необрезная">
+                            <option value="Брус"><option value="Брусок">
+                            <option value="Вагонка"><option value="Блок-хаус">
+                        </datalist>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Сорт</label>
+                        <select name="grade" class="form-select">
+                            <option value="">—</option>
+                            <option>Отборный</option><option>1</option>
+                            <option>2</option><option>3</option><option>4</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Ширина (мм) *</label>
+                        <input type="number" name="width" id="width" class="form-control calc" required step="any" min="1">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Толщина (мм) *</label>
+                        <input type="number" name="thickness" id="thickness" class="form-control calc" required step="any" min="1">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Длина (м) *</label>
+                        <input type="number" name="length" id="length" class="form-control calc" required step="any" min="0.1">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Кол-во (шт) *</label>
+                        <input type="number" name="quantity" id="quantity" class="form-control calc" required min="1">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Объём (м³) <small class="text-muted">авто</small></label>
+                        <input type="text" id="volumeDisplay" class="form-control" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Цена за м³ (₽)</label>
+                        <input type="number" name="price_per_m3" class="form-control" step="any" min="0" value="0">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Примечания</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-wf-green">
+                        <i class="bi bi-check-lg"></i> Добавить на склад
+                    </button>
+                    <a href="{{ url_for('stock') }}" class="btn btn-outline-secondary ms-2">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.calc').forEach(el=>{
+    el.addEventListener('input', calcVolume);
+});
+function calcVolume(){
+    const w = parseFloat(document.getElementById('width').value) || 0;
+    const t = parseFloat(document.getElementById('thickness').value) || 0;
+    const l = parseFloat(document.getElementById('length').value) || 0;
+    const q = parseInt(document.getElementById('quantity').value) || 0;
+    const v = (w/1000)*(t/1000)*l*q;
+    document.getElementById('volumeDisplay').value = v > 0 ? v.toFixed(4) + ' м³' : '';
+}
+</script>
+{% endblock %}

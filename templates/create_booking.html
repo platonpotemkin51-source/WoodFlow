@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Новое бронирование — WoodFlow{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-6">
+    <h2 class="mb-4"><i class="bi bi-plus-circle"></i> Новое бронирование</h2>
+    <div class="card wf-card">
+        <div class="card-body">
+            <form method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="mb-3">
+                    <label class="form-label">Заказчик</label>
+                    <input type="text" name="customer_name" class="form-control" placeholder="ООО «Компания»">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Пункт назначения</label>
+                    <input type="text" name="destination" class="form-control" placeholder="г. Москва">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Примечания</label>
+                    <textarea name="notes" class="form-control" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-wf-green">
+                    <i class="bi bi-check-lg"></i> Создать
+                </button>
+                <a href="{{ url_for('bookings') }}" class="btn btn-outline-secondary ms-2">Отмена</a>
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

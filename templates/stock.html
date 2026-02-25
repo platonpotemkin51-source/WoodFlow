@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Склад — WoodFlow{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-11">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-box-seam"></i> Склад пиломатериалов</h2>
+        <a href="{{ url_for('add_pack') }}" class="btn btn-wf-green">
+            <i class="bi bi-plus-lg"></i> Добавить пачку
+        </a>
+    </div>
+
+    <!-- ФИЛЬТРЫ -->
+    <div class="card wf-card mb-3">
+        <div class="card-body py-2">
+            <form method="get" class="row g-2 align-items-end">
+                <div class="col-auto">
+                    <label class="form-label small mb-0">Порода</label>
+                    <select name="species" class="form-select form-select-sm">
+                        <option value="">Все</option>
+                        {% for s in all_species %}
+                        <option {{ "selected" if s == f_species }}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label small mb-0">Ширина</label>
+                    <select name="width" class="form-select form-select-sm">
+                        <option value="">Все</option>
+                        {% for w in all_widths %}
+                        <option value="{{ w }}" {{ "selected" if w|string == f_width }}>{{ w|int }} мм</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label small mb-0">Статус</label>
+                    <select name="status" class="form-select form-select-sm">
+                        <option value="">На складе + Забронированные</option>
+                        <option value="на_складе" {{ "selected" if f_status == "на_складе" }}>На складе</option>
+                        <option value="забронирована" {{ "selected" if f_status == "забронирована" }}>Забронирована</option>
+                        <option value="отправлена" {{ "selected" if f_status == "отправлена" }}>Отправлена</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label class="form-label small mb-0">Сортировка</label>
+                    <select name="sort" class="form-select form-select-sm">
+                        <option value="date_desc" {{ "selected" if sort == "date_desc" }}>По дате ↓</option>
+                        <option value="species" {{ "selected" if sort == "species" }}>По породе</option>
+                        <option value="width" {{ "selected" if sort == "width" }}>По ширине</option>
+                        <option value="volume" {{ "selected" if sort == "volume" }}>По объёму ↓</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-sm btn-wf-green">Фильтр</button>
+                    <a href="{{ url_for('stock') }}" class="btn btn-sm btn-outline-secondary">Сброс</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ИТОГИ -->
+    <div class="d-flex gap-4 mb-2 small text-muted">
+        <span><b>Объём:</b> {{ sum_volume }} м³</span>
+        <span><b>Стоимость:</b> {{ "{:,.0f}".format(sum_price).replace(",", " ") }} ₽</span>
+    </div>
+
+    <!-- ТАБЛИЦА -->
+    <div class="card wf-card">
+        <div class="table-responsive">
+        <table class="table table-hover table-sm mb-0 align-middle">
+            <thead class="wf-thead">
+                <tr>
+                    <th>#</th><th>Порода</th><th>Тип</th><th>Сорт</th>
+                    <th>Ширина</th><th>Толщина</th><th>Длина</th>
+                    <th>Кол-во</th><th>Объём</th><th>Цена/м³</th>
+                    <th>Статус</th><th>Дата</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for p in packs.items %}
+            <tr>
+                <td>{{ p.id }}</td>
+                <td>{{ p.species }}</td>
+                <td>{{ p.wood_type }}</td>
+                <td>{{ p.grade }}</td>
+                <td>{{ p.width|int }} мм</td>
+                <td>{{ p.thickness|int }} мм</td>
+                <td>{{ p.length }} м</td>
+                <td>{{ p.quantity }}</td>
+                <td><b>{{ p.volume }} м³</b></td>
+                <td>{{ "{:,.0f}".format(p.price_per_m3).replace(",", " ") }}</td>
+                <td>
+                    {% if p.status == 'на_складе' %}
+                    <span class="badge bg-success">На складе</span>
+                    {% elif p.status == 'забронирована' %}
+                    <span class="badge bg-warning text-dark">Забронирована</span>
+                    {% else %}
+                    <span class="badge bg-info">Отправлена</span>
+                    {% endif %}
+                </td>
+                <td class="small">{{ p.created_at.strftime('%d.%m.%y') }}</td>
+                <td>
+                    {% if p.status == 'на_складе' %}
+                    <div class="btn-group btn-group-sm">
+                        <a href="{{ url_for('edit_pack', pack_id=p.id) }}" class="btn btn-outline-secondary" title="Редактировать">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="post" action="{{ url_for('delete_pack', pack_id=p.id) }}" style="display:inline"
+                              onsubmit="return confirm('Удалить пачку #{{ p.id }}?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-outline-danger" title="Удалить"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="13" class="text-center text-muted py-4">Нет данных</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <!-- ПАГИНАЦИЯ -->
+    {% if packs.pages > 1 %}
+    <nav class="mt-3">
+        <ul class="pagination pagination-sm justify-content-center">
+            {% for p in packs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <li class="page-item {{ 'active' if p == packs.page }}">
+                <a class="page-link" href="?page={{ p }}&species={{ f_species }}&width={{ f_width }}&status={{ f_status }}&sort={{ sort }}">{{ p }}</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </nav>
+    {% endif %}
+
+</div>
+</div>
+{% endblock %}

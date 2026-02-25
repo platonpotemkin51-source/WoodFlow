@@ -1,0 +1,152 @@
+/* ═══════════════════════════════════════════
+   WoodFlow — Цветовая палитра
+   ═══════════════════════════════════════════ */
+:root {
+    --wf-green:       #2D5F2D;
+    --wf-green-hover: #1E4D1E;
+    --wf-green-light: #5B8C5A;
+    --wf-beige:       #F8F4EE;
+    --wf-beige-dark:  #E8DFD0;
+    --wf-border:      #DDD5C8;
+    --wf-text:        #2C2C2C;
+}
+
+body {
+    background-color: var(--wf-beige);
+    color: var(--wf-text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* ─── Навигация ─── */
+.wf-navbar {
+    background-color: var(--wf-green) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.wf-navbar .nav-link {
+    color: rgba(255,255,255,0.85) !important;
+    transition: color 0.2s;
+}
+.wf-navbar .nav-link:hover,
+.wf-navbar .nav-link.active {
+    color: #fff !important;
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 6px;
+}
+.wf-navbar .navbar-brand {
+    color: #fff !important;
+    font-size: 1.3rem;
+}
+
+/* ─── Карточки ─── */
+.wf-card {
+    background: #fff;
+    border: 1px solid var(--wf-border);
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.wf-card-header {
+    background-color: var(--wf-beige);
+    border-bottom: 1px solid var(--wf-border);
+    font-weight: 600;
+    padding: 0.6rem 1rem;
+    border-radius: 10px 10px 0 0 !important;
+    color: var(--wf-green);
+}
+
+/* ─── Таблицы ─── */
+.wf-thead {
+    background-color: var(--wf-beige);
+}
+.wf-thead th {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--wf-green);
+    border-bottom: 2px solid var(--wf-border) !important;
+    white-space: nowrap;
+}
+.table td {
+    font-size: 0.9rem;
+    vertical-align: middle;
+}
+
+/* ─── Кнопки ─── */
+.btn-wf-green {
+    background-color: var(--wf-green);
+    border-color: var(--wf-green);
+    color: #fff;
+}
+.btn-wf-green:hover {
+    background-color: var(--wf-green-hover);
+    border-color: var(--wf-green-hover);
+    color: #fff;
+}
+
+/* ─── Метрики дашборда ─── */
+.wf-metric-card {
+    transition: transform 0.2s;
+}
+.wf-metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.wf-metric-icon {
+    font-size: 1.8rem;
+    color: var(--wf-green);
+    margin-bottom: 0.3rem;
+}
+.wf-metric-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--wf-green);
+}
+.wf-metric-label {
+    font-size: 0.8rem;
+    color: #777;
+}
+
+/* ─── Текст зелёный ─── */
+.text-wf-green {
+    color: var(--wf-green) !important;
+}
+
+/* ─── Навигация-pills ─── */
+.nav-pills .nav-link {
+    color: var(--wf-green);
+    border-radius: 20px;
+}
+.nav-pills .nav-link.active {
+    background-color: var(--wf-green);
+}
+
+/* ─── Курсор-указатель ─── */
+.cursor-pointer { cursor: pointer; }
+.cursor-pointer:hover { background-color: var(--wf-beige) !important; }
+
+/* ─── Подвал ─── */
+.wf-footer {
+    background-color: var(--wf-beige-dark);
+    border-top: 1px solid var(--wf-border);
+}
+
+/* ─── Формы ─── */
+.form-control:focus, .form-select:focus {
+    border-color: var(--wf-green-light);
+    box-shadow: 0 0 0 0.2rem rgba(45, 95, 45, 0.15);
+}
+
+/* ─── Бэйджи ─── */
+.badge { font-weight: 500; }
+
+/* ─── Алерты ─── */
+.alert {
+    border-radius: 8px;
+}
+
+/* ─── Пагинация ─── */
+.page-link {
+    color: var(--wf-green);
+}
+.page-item.active .page-link {
+    background-color: var(--wf-green);
+    border-color: var(--wf-green);
+}

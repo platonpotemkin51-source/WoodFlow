@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Пользователи — WoodFlow{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-8">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-people"></i> Пользователи</h2>
+        <a href="{{ url_for('register_user') }}" class="btn btn-wf-green">
+            <i class="bi bi-person-plus"></i> Новый пользователь
+        </a>
+    </div>
+
+    <div class="card wf-card">
+        <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="wf-thead"><tr>
+                <th>ID</th><th>Логин</th><th>Имя</th><th>Роль</th><th>Статус</th><th>Создан</th><th></th>
+            </tr></thead>
+            <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td class="fw-bold">{{ u.username }}</td>
+                <td>{{ u.full_name }}</td>
+                <td>
+                    {% if u.is_admin %}
+                    <span class="badge bg-danger">Админ</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Пользователь</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if u.is_active_user %}
+                    <span class="badge bg-success">Активен</span>
+                    {% else %}
+                    <span class="badge bg-warning text-dark">Отключён</span>
+                    {% endif %}
+                </td>
+                <td class="small">{{ u.created_at.strftime('%d.%m.%Y') }}</td>
+                <td>
+                    {% if u.id != current_user.id %}
+                    <form method="post" action="{{ url_for('toggle_user', user_id=u.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-sm btn-outline-{{ 'warning' if u.is_active_user else 'success' }}">
+                            {{ 'Отключить' if u.is_active_user else 'Включить' }}
+                        </button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Бронирования — WoodFlow{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+<div class="col-lg-11">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-bookmark-check"></i> Бронирования</h2>
+        <a href="{{ url_for('create_booking') }}" class="btn btn-wf-green">
+            <i class="bi bi-plus-lg"></i> Новое бронирование
+        </a>
+    </div>
+
+    <ul class="nav nav-pills mb-3">
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if status_filter == 'активная' }}"
+               href="?status=активная">Активные</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if status_filter == 'отправлена' }}"
+               href="?status=отправлена">Отправленные</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if status_filter == 'отменена' }}"
+               href="?status=отменена">Отменённые</a>
+        </li>
+    </ul>
+
+    <div class="row g-3">
+        {% for b in bookings %}
+        <div class="col-md-6 col-xl-4">
+            <div class="card wf-card h-100 cursor-pointer"
+                 onclick="location.href='{{ url_for('booking_detail', booking_id=b.id) }}'">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title text-wf-green">{{ b.number }}</h5>
+                        {% if b.status == 'активная' %}
+                        <span class="badge bg-success">Активная</span>
+                        {% elif b.status == 'отправлена' %}
+                        <span class="badge bg-info">Отправлена</span>
+                        {% else %}
+                        <span class="badge bg-secondary">Отменена</span>
+                        {% endif %}
+                    </div>
+                    <p class="mb-1"><i class="bi bi-person"></i> {{ b.customer_name or '—' }}</p>
+                    <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ b.destination or '—' }}</p>
+                    <hr>
+                    <div class="d-flex justify-content-between small">
+                        <span><b>{{ b.pack_count }}</b> пачек</span>
+                        <span><b>{{ b.total_volume }}</b> м³</span>
+                        <span><b>{{ "{:,.0f}".format(b.total_price).replace(",", " ") }}</b> ₽</span>
+                    </div>
+                    <div class="text-muted small mt-2">
+                        {{ b.created_at.strftime('%d.%m.%Y %H:%M') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center text-muted py-5">
+            <i class="bi bi-inbox display-4"></i>
+            <p class="mt-2">Нет бронирований</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+</div>
+{% endblock %}

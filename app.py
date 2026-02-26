@@ -43,8 +43,7 @@ def load_user(user_id):
 # ──────────────────────────────────────────────
 def calc_volume(width_mm, thickness_mm, length_m, qty):
     """Объём пачки в м³."""
-    return round((width_mm / 1000) * (thickness_mm / 1000) * length_m * qty, 4)
-
+    return round(width_mm * thickness_mm * length_m * (10**(-9)) * qty, 4)
 
 def generate_booking_number():
     """генерирует название брони"""
@@ -288,31 +287,54 @@ def stock():
 @app.route("/stock/add", methods=["GET", "POST"])
 @login_required
 def add_pack():
+    """
+    Загрузка пачка на склад
+    """
     if request.method == "POST":
         try:
-            width = float(request.form["width"])
-            thickness = float(request.form["thickness"])
-            length = float(request.form["length"])
-            quantity = int(request.form["quantity"])
-            price = float(request.form.get("price_per_m3") or 0)
-            volume = calc_volume(width, thickness, length, quantity)
+            number_pac = request.form.grt("number_pac","")
+            grade = request.form.get("grade","")
+
+            width_fact_for_tam = float(request.form["width_fact_for_tam"])
+            width_fact_for_pok = float(request.form["width_fact_for_pok"])
+            # width_nominal_for_pok = width_fact_for_pok - 1
+
+            thickness_fact_for_tam = float(request.form[" thickness_fact_for_tam"])
+            thickness_fact_for_pok = float(request.form[" thickness_fact_for_pok"])
+            # thickness_nominal_for_pok = thickness_fact_for_pok - 3
+
+            length_fact = float(request.form["length_fact"])
+            length_nominal = float(request.form["length_nominal"])
+
+            quantity_layers = int(request.form["quantity_layers"])
+            quantity_in_layer = int(request.form["quantity_in_layer"])
+            quantity = quantity_layers * quantity_in_layer
+
+            volume_fact_for_pok = round(calc_volume(width_fact_for_pok, thickness_fact_for_pok, length_fact, quantity*0.92),7)
 
             pack = WoodPack(
-                species=request.form["species"].strip(),
-                wood_type=request.form.get("wood_type", "").strip(),
-                grade=request.form.get("grade", "").strip(),
-                width=width,
-                thickness=thickness,
-                length=length,
+                number_pac=number_pac,
+                grade=grade,
+
+                width_fact_for_tam=width_fact_for_tam,
+                width_fact_for_pok=width_fact_for_pok,
+
+                thickness_fact_for_tam=thickness_fact_for_tam,
+                thickness_fact_for_pok=thickness_fact_for_pok,
+
+                length_fact=length_fact,
+                length_nominal=length_nominal,
+
+                quantity_layers=quantity_layers,
+                quantity_in_layer=quantity_in_layer,
                 quantity=quantity,
-                volume=volume,
-                price_per_m3=price,
+
                 notes=request.form.get("notes", "").strip(),
                 created_by=current_user.id,
             )
             db.session.add(pack)
             db.session.commit()
-            flash(f"Пачка #{pack.id} добавлена на склад ({volume} м³).", "success")
+            flash(f"Пачка #{pack.number_pac} добавлена на склад ({volume_fact_for_pok} м³).", "success")
             return redirect(url_for("stock"))
         except (ValueError, KeyError) as e:
             flash(f"Ошибка ввода: {e}", "danger")
@@ -333,18 +355,27 @@ def edit_pack(pack_id):
 
     if request.method == "POST":
         try:
-            pack.species = request.form["species"].strip()
-            pack.wood_type = request.form.get("wood_type", "").strip()
-            pack.grade = request.form.get("grade", "").strip()
-            pack.width = float(request.form["width"])
-            pack.thickness = float(request.form["thickness"])
-            pack.length = float(request.form["length"])
-            pack.quantity = int(request.form["quantity"])
-            pack.price_per_m3 = float(request.form.get("price_per_m3") or 0)
-            pack.volume = calc_volume(
-                pack.width, pack.thickness, pack.length, pack.quantity
-            )
-            pack.notes = request.form.get("notes", "").strip()
+            pack.number_pac = request.form.grt("number_pac", "")
+            pack.grade = request.form.get("grade", "")
+
+            pack.width_fact_for_tam = float(request.form["width_fact_for_tam"])
+            pack.width_fact_for_pok = float(request.form["width_fact_for_pok"])
+            # width_nominal_for_pok = width_fact_for_pok - 1
+
+            pack.thickness_fact_for_tam = float(request.form[" thickness_fact_for_tam"])
+            pack.thickness_fact_for_pok = float(request.form[" thickness_fact_for_pok"])
+            # thickness_nominal_for_pok = thickness_fact_for_pok - 3
+
+            pack.length_fact = float(request.form["length_fact"])
+            pack.length_nominal = float(request.form["length_nominal"])
+
+            pack.quantity_layers = int(request.form["quantity_layers"])
+            pack.quantity_in_layer = int(request.form["quantity_in_layer"])
+            quantity = pack.quantity_layers * pack.quantity_in_layer
+
+            pack.volume_fact_for_pok = round(
+                calc_volume(pack.width_fact_for_pok, pack.thickness_fact_for_pok, pack.length_fact, quantity * 0.92), 7)
+
             db.session.commit()
             flash("Пачка обновлена.", "success")
             return redirect(url_for("stock"))
@@ -391,11 +422,14 @@ def create_booking():
     if request.method == "POST":
         booking = Booking(
             number=generate_booking_number(),
-            customer_name=request.form.get("customer_name", "").strip(),
-            destination=request.form.get("destination", "").strip(),
+            company_name=request.form.get("company_name", "").strip(),
+            adres=request.form.get("adres", "").strip(),
+            price_per_m3 = float(request.form["price_per_m3"]),
+            contract = request.form.get("contract", "").strip(),
             notes=request.form.get("notes", "").strip(),
             created_by=current_user.id,
         )
+
         db.session.add(booking)
         db.session.commit()
         flash(f"Бронирование {booking.number} создано.", "success")
@@ -406,6 +440,7 @@ def create_booking():
 @app.route("/bookings/<int:booking_id>")
 @login_required
 def booking_detail(booking_id):
+    """Открытие одного конкретного бронирования"""
     booking = db.session.get(Booking, booking_id)
     if not booking:
         flash("Бронирование не найдено.", "danger")
@@ -413,7 +448,7 @@ def booking_detail(booking_id):
 
     available_packs = (
         WoodPack.query.filter_by(status="на_складе")
-        .order_by(WoodPack.species, WoodPack.width)
+        .order_by(WoodPack.width, WoodPack.grade)
         .all()
     )
     return render_template(
@@ -424,6 +459,7 @@ def booking_detail(booking_id):
 @app.route("/bookings/<int:booking_id>/add-packs", methods=["POST"])
 @login_required
 def add_packs_to_booking(booking_id):
+    """Добавление пачек к бронированной партии"""
     booking = db.session.get(Booking, booking_id)
     if not booking or booking.status != "активная":
         flash("Нельзя изменить это бронирование.", "warning")
@@ -445,6 +481,7 @@ def add_packs_to_booking(booking_id):
 @app.route("/bookings/<int:booking_id>/remove-pack/<int:pack_id>", methods=["POST"])
 @login_required
 def remove_pack_from_booking(booking_id, pack_id):
+    """Удаление пачки из брони по id пачки и по id партии"""
     booking = db.session.get(Booking, booking_id)
     pack = db.session.get(WoodPack, pack_id)
     if booking and pack and booking.status == "активная" and pack.booking_id == booking.id:
@@ -460,6 +497,7 @@ def remove_pack_from_booking(booking_id, pack_id):
 @app.route("/bookings/<int:booking_id>/ship", methods=["GET", "POST"])
 @login_required
 def ship_booking(booking_id):
+    """Отправка партии на машину"""
     booking = db.session.get(Booking, booking_id)
     if not booking or booking.status != "активная":
         flash("Нельзя отправить это бронирование.", "warning")
@@ -471,11 +509,11 @@ def ship_booking(booking_id):
     if request.method == "POST":
         shipment = Shipment(
             booking_id=booking.id,
-            driver_name=request.form.get("driver_name", "").strip(),
-            truck_number=request.form.get("truck_number", "").strip(),
-            destination=booking.destination,
-            total_volume=booking.total_volume,
-            total_price=booking.total_price,
+            logist_comp=request.form.get("logist_comp", "").strip(),
+            car_number=request.form.get("car_number", "").strip(),
+            cont_number=request.form.get("cont_number", "").strip(),
+            trailer_number=request.form.get("trailer_number", "").strip(),
+            plomb_number=request.form.get("plomb_number", "").strip(),
             notes=request.form.get("notes", "").strip(),
             created_by=current_user.id,
         )
@@ -486,7 +524,7 @@ def ship_booking(booking_id):
         booking.status = "отправлена"
 
         db.session.commit()
-        flash(f"Отправка оформлена! Объём: {shipment.total_volume} м³", "success")
+        flash(f"Отправка на {booking.pack_count} пачек оформлена! Объём фактический для таможни: {booking.total_price} м³ ", "success")
         return redirect(url_for("shipment_detail", shipment_id=shipment.id))
 
     return render_template("ship_booking.html", booking=booking)
@@ -505,7 +543,7 @@ def cancel_booking(booking_id):
         pack.booking_id = None
     booking.status = "отменена"
     db.session.commit()
-    flash("Бронирование отменено. Пачки возвращены на склад.", "success")
+    flash(f"Бронирование отменено. {booking.pack_count} пачек возвращены на склад.", "success")
     return redirect(url_for("bookings"))
 
 
@@ -528,6 +566,7 @@ def booking_excel(booking_id):
 @app.route("/archive")
 @login_required
 def archive():
+    """архитектура арзива"""
     page = request.args.get("page", 1, type=int)
     shipments = (
         Shipment.query
@@ -540,11 +579,13 @@ def archive():
 @app.route("/archive/<int:shipment_id>")
 @login_required
 def shipment_detail(shipment_id):
+    """Полная информация по отправке"""
     shipment = db.session.get(Shipment, shipment_id)
+    booking = db.session.get(Booking, shipment.booking_id)
     if not shipment:
         flash("Отправка не найдена.", "danger")
         return redirect(url_for("archive"))
-    return render_template("shipment_detail.html", shipment=shipment)
+    return render_template("shipment_detail.html", shipment=shipment, booking=booking)
 
 
 @app.route("/archive/<int:shipment_id>/excel")
@@ -602,6 +643,7 @@ def register_user():
 @login_required
 @admin_required
 def toggle_user(user_id):
+    """Деактивация пользователя"""
     user = db.session.get(User, user_id)
     if not user:
         flash("Пользователь не найден.", "danger")

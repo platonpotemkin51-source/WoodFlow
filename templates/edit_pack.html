@@ -3,63 +3,64 @@
 {% block content %}
 <div class="row justify-content-center">
 <div class="col-lg-8">
-    <h2 class="mb-4"><i class="bi bi-pencil"></i> Редактировать пачку #{{ pack.id }}</h2>
+    <h2 class="mb-4"><i class="bi bi-pencil"></i> Редактировать пачку номер {{ pack.number_pac}}</h2>
     <div class="card wf-card">
         <div class="card-body">
             <form method="post">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Порода *</label>
-                        <input type="text" name="species" class="form-control" required
-                               value="{{ pack.species }}" list="speciesList">
-                        <datalist id="speciesList">
-                            <option value="Сосна"><option value="Ель">
-                            <option value="Лиственница"><option value="Берёза">
-                            <option value="Дуб"><option value="Осина">
-                        </datalist>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Тип</label>
-                        <input type="text" name="wood_type" class="form-control"
-                               value="{{ pack.wood_type }}" list="typeList">
-                        <datalist id="typeList">
-                            <option value="Доска обрезная"><option value="Доска необрезная">
-                            <option value="Брус"><option value="Брусок">
-                        </datalist>
+                    <div class="col-md-3">
+                        <label class="form-label">Номер пачки</label>
+                        <input type="number" name="number_pac" id="number_pac" class="form-control" required value="{{ pack.number_pac }}">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">Сорт</label>
                         <select name="grade" class="form-select">
-                            <option value="">—</option>
-                            {% for g in ['Отборный','1','2','3','4'] %}
+                            {% for g in ['AA','AB','AC','BB','BC','CC'] %}
                             <option {{ "selected" if pack.grade == g }}>{{ g }}</option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Ширина (мм) *</label>
-                        <input type="number" name="width" id="width" class="form-control calc" required step="any" value="{{ pack.width }}">
+                        <label class="form-label">Ширина пачки (мм)</label>
+                        <input type="number" name="width_fact_for_tam" id="width_fact_for_tam" class="form-control calc" required step="any" min="1" value="{{ pack.width_fact_for_tam }}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Толщина (мм) *</label>
-                        <input type="number" name="thickness" id="thickness" class="form-control calc" required step="any" value="{{ pack.thickness }}">
+                        <label class="form-label">Ширина доски (мм)</label>
+                        <input type="number" name="width_fact_for_pok" id="width_fact_for_pok" class="form-control calc" required step="any" min="1" list="widthList" value="{{ pack.width_fact_for_pok }}">
+                        <datalist id="widthList">
+                            <option value=67><option value="22">
+                            <option value=79><option value="55">
+                            <option value="41">
+                        </datalist>
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Длина (м) *</label>
-                        <input type="number" name="length" id="length" class="form-control calc" required step="any" value="{{ pack.length }}">
+                        <label class="form-label">Толщина пачки (мм)</label>
+                        <input type="number" name="thickness_fact_for_tam" id="thickness_fact_for_tam" class="form-control calc" required step="any" min="1" value="{{ pack.thickness_fact_for_tam }}">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">Кол-во (шт) *</label>
-                        <input type="number" name="quantity" id="quantity" class="form-control calc" required value="{{ pack.quantity }}">
+                        <label class="form-label">Толщина доски (мм)</label>
+                        <input type="number" name="thickness_fact_for_pok" id="thickness_fact_for_pok" class="form-control calc" required step="any" min="1" value="{{ pack.thickness_fact_for_pok }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Длина номинальная (м)</label>
+                        <input type="number" name="length_fact" id="length_fact" class="form-control calc" required step="any" min="1" value="{{ pack.length_fact }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Длина фактическая (м)</label>
+                        <input type="number" name="length_nominal" id="length_nominal" class="form-control calc" required step="any" min="1" value="{{ pack.length_nominal }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Кол-во слоёв (шт) </label>
+                        <input type="number" name="quantity_layers" id="quantity_layers" class="form-control calc" required min="1"  value="{{ pack.quantity_layers }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Кол-во досок в слою (шт)</label>
+                        <input type="number" name="quantity_in_layer" id="quantity_in_layer" class="form-control calc" required min="1"  value="{{ pack.quantity_in_layer }}">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Объём (м³)</label>
-                        <input type="text" id="volumeDisplay" class="form-control" readonly value="{{ pack.volume }} м³">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Цена за м³ (₽)</label>
-                        <input type="number" name="price_per_m3" class="form-control" step="any" value="{{ pack.price_per_m3 }}">
+                        <label class="form-label">Объём (м³) <small class="text-muted">факт. для покупателя</small></label>
+                        <input type="text" id="volumeDisplay" class="form-control" readonly>
                     </div>
                     <div class="col-12">
                         <label class="form-label">Примечания</label>
@@ -81,12 +82,13 @@
 <script>
 document.querySelectorAll('.calc').forEach(el=>el.addEventListener('input', calcVolume));
 function calcVolume(){
-    const w=parseFloat(document.getElementById('width').value)||0;
-    const t=parseFloat(document.getElementById('thickness').value)||0;
-    const l=parseFloat(document.getElementById('length').value)||0;
-    const q=parseInt(document.getElementById('quantity').value)||0;
-    const v=(w/1000)*(t/1000)*l*q;
-    document.getElementById('volumeDisplay').value=v>0?v.toFixed(4)+' м³':'';
+    const w = parseFloat(document.getElementById('width_fact_for_pok').value) || 0;
+    const t = parseFloat(document.getElementById('thickness_fact_for_pok').value) || 0;
+    const l = parseFloat(document.getElementById('length_fact').value) || 0;
+    const q1 = parseInt(document.getElementById('quantity_layers').value) || 0;
+    const q2 = parseInt(document.getElementById('quantity_in_layer').value) || 0;
+    const v = (w/1000)*(t/1000)*(l/1000)*q1*q2*0.92;
+    document.getElementById('volumeDisplay').value = v > 0 ? v.toFixed(4) + ' м³' : '';
 }
 </script>
 {% endblock %}

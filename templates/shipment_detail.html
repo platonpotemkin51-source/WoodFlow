@@ -12,11 +12,29 @@
         padding-left: 6px;
         padding-right: 6px;
     }
-    
+
+    /* Дополнение для четких границ как на скриншоте */
+    .table-bordered th,
+    .table-bordered td {
+        border: 1px solid var(--wf-border) !important;
+    }
+
+    /* Уменьшаем шрифт, чтобы широкая таблица влезла */
+    .table-dense {
+        font-size: 0.85rem;
+    }
+    .table-dense th {
+        font-size: 0.8rem;
+        padding: 4px; /* Компактные отступы */
+    }
+    .table-dense td {
+        padding: 4px;
+    }
+
     .wf-info-table td:first-child {
         width: 1% !important;
         white-space: nowrap !important;
-        text-align: right !important;  /* или center */
+        text-align: center !important;  /* или center */
         padding-right: 8px !important;
     }
 
@@ -135,37 +153,136 @@
         </div>
 
         <div class="table-responsive">
-        <table class="table table-sm mb-0 align-middle">
-            <thead class="wf-thead">
-                <tr>
-                    <th>#</th>
-                    <th>№ пачки</th>
-                    <th>Сорт</th>
-                    <th>Размер (мм)</th>
-                    <th>Кол-во</th>
-                    <th>Объём (м³)</th>
-                </tr>
-            </thead>
+        <table class="table table-bordered table-hover table-sm mb-0 align-middle text-center table-dense">
+                <thead class="wf-thead">
+                    <!-- Ряд заголовков 0 -->
+                    <tr>
+                        <th colspan="12">покупатель (характеристики доски)</th>
+                        <th colspan="10">отправка (характеристики пачки)</th>
+                    </tr>
+                    <!-- Ряд заголовков 1 -->
+                    <tr>
+                        <!-- No.package (объединяет 2 строки) -->
+                        <th rowspan="2" style="vertical-align: middle;">№ пачки</th>
+
+                        <!-- Размеры доски (заголовки верхнего уровня) -->
+                        <th colspan="2">ширина (мм)</th>
+                        <th colspan="2">толщин (мм)</th>
+                        <th colspan="2">длина (мм)</th>
+
+                        <!-- Кол-во (верхняя часть) -->
+                        <th rowspan="2" style="vertical-align: middle;">кол-во<br> шт.</th>
+                        <th rowspan="2" style="vertical-align: middle;">кол-во<br> рядов</th>
+                        <th rowspan="2" style="vertical-align: middle;">кол-во<br> столбцов</th>
+
+                        <!-- Объем доски (верхний уровень, объединяет номин/факт) -->
+                        <th colspan="2">объем (м³)</th>
+
+                        <!-- Параметры пачки -->
+                        <th rowspan="2" style="vertical-align: middle;">высота<br> (мм)</th>
+                        <th rowspan="2" style="vertical-align: middle;">ширина<br> (мм)</th>
+                        <th rowspan="2" style="vertical-align: middle;">длина<br> (мм)</th>
+
+                        <!-- Объем пачки -->
+                        <th colspan="2">объем (м³)</th>
+
+                        <!-- Вес и Сорт -->
+                        <th rowspan="2" style="vertical-align: middle;">вес (кг)</th>
+                        <th rowspan="2" style="vertical-align: middle;">сорт</th>
+
+                        <th rowspan="2" style="vertical-align: middle;">статус</th>
+
+                        <th rowspan="2" style="vertical-align: middle;">дата создания</th>
+
+                    </tr>
+
+                    <!-- Ряд заголовков 2 (подзаголовки) -->
+                    <tr>
+                        <!-- Под "ширина" -->
+                        <th>номин.</th>
+                        <th>факт.</th>
+                        <!-- Под "толщин" -->
+                        <th>номин.</th>
+                        <th>факт.</th>
+                        <!-- Под "длина" -->
+                        <th>номин.</th>
+                        <th>факт.</th>
+
+                        <!-- Под "объем м3" -->
+                        <th>номин.</th>
+                        <th>факт.</th>
+
+                        <!-- Под "объем пачки" -->
+                        <th>номин.</th>
+                        <th>факт.</th>
+                    </tr>
+                </thead>
             <tbody>
             {% for p in shipment.booking.packs %}
-            <tr>
-                <td>{{ loop.index }}</td>
-                <td>{{ p.number_pac }}</td>
-                <td>{{ p.grade }}</td>
-                <td>
-                    {{ p.width_nominal_for_pok|int }}×
-                    {{ p.thickness_nominal_for_pok|int }}×
-                    {{ p.length_nominal|int }}
-                </td>
-                <td>{{ p.quantity }}</td>
-                <td>{{ p.volume_fact_for_pok }}</td>
-            </tr>
+                <tr>
+                    <!-- No.package -->
+                    <td class="fw-bold text-wf-green">{{ p.number_pac }}</td>
+
+                    <!-- Размеры доски -->
+                    <td>{{ p.width_nominal_for_pok|int if p.width_nominal_for_pok else "---" }}</td>
+                    <td>{{ p.width_fact_for_pok|int if p.width_fact_for_pok else "---" }}</td>
+                    <td>{{ p.thickness_nominal_for_pok|int if p.thickness_nominal_for_pok else "---" }}</td>
+                    <td>{{ p.thickness_fact_for_pok|int if p.thickness_fact_for_pok else "---" }}</td>
+                    <td>{{ p.length_nominal|int if p.length_nominal else "---" }}</td>
+                    <td>{{ p.length_fact|int if p.length_fact else "---" }}</td>
+
+                    <!-- Кол-во -->
+                    <td>{{ p.quantity if p.quantity else "---" }}</td>
+                    <td>{{ p.quantity_layers if p.quantity_layers else "---" }}</td>
+                    <td>{{ p.quantity_in_layer if p.quantity_in_layer else "---" }}</td>
+
+                    <!-- Объем доски (Метрики из базы) -->
+                    <td>{{ p.volume_nominal_for_pok | round(3) if p.volume_nominal_for_pok else "---" }}</td> <!-- Номинальный -->
+                    <td>{{ p.volume_fact_for_pok | round(3) if p.volume_fact_for_pok else "---" }}</td> <!-- Фактический (заглушка, если нет в БД) -->
+
+                    <!-- Параметры пачки (Заглушки, нужно заменить на p.rows, p.height и т.д.) -->
+                    <td>{{ p.thickness_fact_for_tam|int }}</td> <!-- Высота -->
+                    <td>{{ p.width_fact_for_tam|int }}</td>  <!-- Ширина пачки -->
+                    <td>{{ p.length_pack|int }}</td> <!-- Длина пачки -->
+
+                    <!-- Объем пачки -->
+                    <td>{{ p.volume_nominal_for_tam | round(3)}}</td>
+                    <td>{{ p.volume_fact_for_tam | round(3) }}</td>
+
+                    <!-- Вес -->
+                    <td>{{ p.weight_nominal_for_tam| round(1) }}</td>
+
+                    <!-- Сорт -->
+                    <td>{{ p.grade }}</td>
+
+                    <!-- Статус -->
+                    <td>
+                        <span class="
+                        {% if p.status == 'на_складе' %} badge bg-success
+                        {% elif p.status == 'забронирована' %} badge bg-warning text-dark
+                        {% elif p.status in ['отправлена', 'продана'] %} badge bg-danger
+                        {% endif %}
+                        ">
+                            {{ p.status }}
+                        </span>
+                    </td>
+
+                    <!-- Время создания -->
+                    <td>{{ p.created_at.strftime("%Y.%m.%d") }}</td>
+                </tr>
             {% endfor %}
             </tbody>
             <tfoot class="wf-thead">
                 <tr class="fw-bold">
-                    <td colspan="5" class="text-end">ИТОГО:</td>
-                    <td>{{ shipment.booking.total_volume_fact_for_pok }}</td>
+                    <td class="text-end">ИТОГО:</td>
+                    <td colspan="9"></td>
+                    <td>{{ shipment.booking.total_volume_nominal_for_pok| round(3) }}</td>
+                    <td>{{ shipment.booking.total_volume_fact_for_pok| round(3) }}</td>
+                    <td colspan="3"></td>
+                    <td>{{ shipment.booking.total_volume_nominal_for_tam| round(3) }}</td>
+                    <td>{{ shipment.booking.total_volume_fact_for_tam| round(3) }}</td>
+                    <td>{{ shipment.booking.total_weight_nominal_for_tam| round(1) }}</td>
+                    <td colspan="3"></td>
                 </tr>
             </tfoot>
         </table>

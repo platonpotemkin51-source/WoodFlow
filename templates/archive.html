@@ -4,35 +4,77 @@
 <div class="row justify-content-center">
 <div class="col-lg-11">
 
-    <h2 class="mb-4"><i class="bi bi-archive"></i> Архив отправок</h2>
+    <h2 class="mb-4">
+        <i class="bi bi-archive"></i> Архив отправок
+    </h2>
 
     <div class="card wf-card">
         <div class="table-responsive">
         <table class="table table-hover mb-0 align-middle">
-            <thead class="wf-thead"><tr>
-                <th>Номер</th><th>Дата</th><th>Заказчик</th><th>Направление</th>
-                <th>Водитель</th><th>ТС</th><th>Объём</th><th>Сумма</th><th></th>
-            </tr></thead>
+            <thead class="wf-thead">
+                <tr>
+                    <th>Номер</th>
+                    <th>Дата</th>
+                    <th>Заказчик</th>
+                    <th>Логистика</th>
+                    <th>Номера контейнера/машины/прицепа/пломбы</th>
+                    <th>Объём</th>
+                    <th>Сумма</th>
+                    <th></th>
+                </tr>
+            </thead>
             <tbody>
             {% for s in shipments.items %}
-            <tr class="cursor-pointer" onclick="location.href='{{ url_for('shipment_detail', shipment_id=s.id) }}'">
-                <td class="fw-bold text-wf-green">{{ s.booking.number }}</td>
-                <td>{{ s.shipped_at.strftime('%d.%m.%Y %H:%M') }}</td>
-                <td>{{ s.booking.customer_name }}</td>
-                <td>{{ s.destination }}</td>
-                <td>{{ s.driver_name }}</td>
-                <td>{{ s.truck_number }}</td>
-                <td>{{ s.total_volume }} м³</td>
-                <td>{{ "{:,.0f}".format(s.total_price).replace(",", " ") }} ₽</td>
+            <tr class="cursor-pointer"
+                onclick="location.href='{{ url_for('shipment_detail', shipment_id=s.id) }}'">
+
+                <td class="fw-bold text-wf-green">
+                    {{ s.booking.number }}
+                </td>
+
+                <td>
+                    {{ s.shipped_at.strftime('%Y.%m.%d') }}
+                </td>
+
+                <td>
+                    {{ s.booking.company_name or "—" }}
+                </td>
+
+                <td>
+                    {{ s.logist_comp or "—" }}
+                </td>
+
+                <td>
+                    {{ s.cont_number or "—" }}
+                    / {{ s.car_number or "—" }}
+                    / {{ s.trailer_number or "—" }}
+                    / {{ s.plomb_number or "—" }}
+                </td>
+
+                <td>
+                    {{ s.booking.total_volume_fact_for_tam }} м³
+                </td>
+
+                <td class="fw-semibold">
+                    {{ "{:,.0f}".format(s.booking.total_price).replace(",", " ") }} ₽
+                </td>
+
                 <td>
                     <a href="{{ url_for('shipment_excel', shipment_id=s.id) }}"
-                       class="btn btn-sm btn-outline-success" onclick="event.stopPropagation()" title="Excel">
+                       class="btn btn-sm btn-outline-success"
+                       onclick="event.stopPropagation()"
+                       title="Excel">
                         <i class="bi bi-file-earmark-excel"></i>
                     </a>
                 </td>
+
             </tr>
             {% else %}
-            <tr><td colspan="9" class="text-center text-muted py-4">Архив пуст</td></tr>
+            <tr>
+                <td colspan="8" class="text-center text-muted py-4">
+                    Архив пуст
+                </td>
+            </tr>
             {% endfor %}
             </tbody>
         </table>
@@ -48,7 +90,9 @@
                 <a class="page-link" href="?page={{ p }}">{{ p }}</a>
             </li>
             {% else %}
-            <li class="page-item disabled"><span class="page-link">…</span></li>
+            <li class="page-item disabled">
+                <span class="page-link">…</span>
+            </li>
             {% endif %}
             {% endfor %}
         </ul>

@@ -2,6 +2,8 @@ from datetime import datetime, UTC
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from zoneinfo import ZoneInfo
+
 
 db = SQLAlchemy()
 
@@ -192,6 +194,6 @@ class Shipment(db.Model):
     trailer_number = db.Column(db.String(50), default="")
     plomb_number = db.Column(db.String(50), default="")
     # ---
-    shipped_at = db.Column(db.DateTime, default=datetime.now(UTC))
+    shipped_at = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("Europe/Moscow")))  # сразу МСК
     notes = db.Column(db.Text, default="")
     created_by = db.Column(db.Integer, db.ForeignKey("users.id"))

@@ -79,7 +79,7 @@ class WoodPack(db.Model):
 
     @property
     def volume_fact_for_tam(self):
-        return self.width_fact_for_tam * self.thickness_fact_for_tam * self.length_pack * self.quantity * (
+        return self.width_fact_for_tam * self.thickness_fact_for_tam * self.length_pack * (
                     10 ** (-9))   # м³
 
     @property
@@ -170,7 +170,7 @@ class Booking(db.Model):
     @property
     def total_price(self):
         # return round(sum(p.volume * p.price_per_m3 for p in self.packs), 2)
-        return round(self.total_volume_fact_for_tam * self.price_per_m3 , 2)
+        return round(self.total_volume_nominal_for_tam * self.price_per_m3 , 2)
 
     # --- Количество пачек
     @property

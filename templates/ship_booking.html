@@ -1,14 +1,19 @@
 {% extends "base.html" %}
-{% block title %}Отправка {{ booking.number }} — WoodFlow{% endblock %}
+{% block title %}Оформление отправки {{ booking.number }} — WoodFlow{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
 <div class="col-lg-6">
-    <h2 class="mb-4"><i class="bi bi-truck"></i> Оформление отправки</h2>
+
+    <h2 class="mb-4">
+        <i class="bi bi-truck"></i> Оформление отправки
+    </h2>
 
     <div class="alert alert-info">
-        <b>{{ booking.number }}</b> — {{ booking.customer_name }}<br>
-        Пачек: {{ booking.pack_count }} &bull;
-        Объём: {{ booking.total_volume }} м³ &bull;
+        <b>{{ booking.number }}</b><br>
+        {{ booking.company_name or "—" }}<br>
+        Пачек: {{ booking.pack_count }} •
+        Объём: {{ booking.total_volume_fact_for_pok }} м³ •
         Сумма: {{ "{:,.0f}".format(booking.total_price).replace(",", " ") }} ₽
     </div>
 
@@ -16,29 +21,52 @@
         <div class="card-body">
             <form method="post">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                 <div class="mb-3">
-                    <label class="form-label">Водитель *</label>
-                    <input type="text" name="driver_name" class="form-control" required
-                           placeholder="Иванов Иван Иванович">
+                    <label class="form-label">Логистическая компания</label>
+                    <input type="text" name="logist_comp" class="form-control">
                 </div>
+
                 <div class="mb-3">
-                    <label class="form-label">Номер ТС *</label>
-                    <input type="text" name="truck_number" class="form-control" required
-                           placeholder="А123БВ 77">
+                    <label class="form-label">Контейнер</label>
+                    <input type="text" name="cont_number" class="form-control">
                 </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Тягач</label>
+                    <input type="text" name="car_number" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Прицеп</label>
+                    <input type="text" name="trailer_number" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Номер пломбы</label>
+                    <input type="text" name="plomb_number" class="form-control">
+                </div>
+
                 <div class="mb-3">
                     <label class="form-label">Примечания</label>
                     <textarea name="notes" class="form-control" rows="2"></textarea>
                 </div>
-                <button type="submit" class="btn btn-wf-green"
+
+                <button type="submit"
+                        class="btn btn-wf-green"
                         onclick="return confirm('Подтвердить отправку?')">
                     <i class="bi bi-check-lg"></i> Подтвердить отправку
                 </button>
+
                 <a href="{{ url_for('booking_detail', booking_id=booking.id) }}"
-                   class="btn btn-outline-secondary ms-2">Назад</a>
+                   class="btn btn-outline-secondary ms-2">
+                    Назад
+                </a>
+
             </form>
         </div>
     </div>
+
 </div>
 </div>
 {% endblock %}

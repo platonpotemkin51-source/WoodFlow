@@ -32,8 +32,10 @@
             <div class="card wf-card h-100 cursor-pointer"
                  onclick="location.href='{{ url_for('booking_detail', booking_id=b.id) }}'">
                 <div class="card-body">
+
                     <div class="d-flex justify-content-between">
                         <h5 class="card-title text-wf-green">{{ b.number }}</h5>
+
                         {% if b.status == 'активная' %}
                         <span class="badge bg-success">Активная</span>
                         {% elif b.status == 'отправлена' %}
@@ -42,24 +44,33 @@
                         <span class="badge bg-secondary">Отменена</span>
                         {% endif %}
                     </div>
-                    <p class="mb-1"><i class="bi bi-person"></i> {{ b.customer_name or '—' }}</p>
-                    <p class="mb-1"><i class="bi bi-geo-alt"></i> {{ b.destination or '—' }}</p>
+
+                    <p class="mb-1">
+                        <i class="bi bi-building"></i>
+                        {{ b.company_name or '—' }}
+                    </p>
+
                     <hr>
+
                     <div class="d-flex justify-content-between small">
                         <span><b>{{ b.pack_count }}</b> пачек</span>
-                        <span><b>{{ b.total_volume }}</b> м³</span>
-                        <span><b>{{ "{:,.0f}".format(b.total_price).replace(",", " ") }}</b> ₽</span>
+                        <span><b>{{ b.total_volume_fact_for_pok | round(3)}}</b> м³</span>
+                        <span><b>{{ b.total_weight_nominal_for_tam | round(3)}}</b> кг</span>
+                        <span>
+                            <b>{{ b.total_price | round(2) }}</b> ₽
+                        </span>
                     </div>
+
                     <div class="text-muted small mt-2">
-                        {{ b.created_at.strftime('%d.%m.%Y %H:%M') }}
+                        {{ b.created_at.strftime('%Y.%m.%d') }}
                     </div>
+
                 </div>
             </div>
         </div>
         {% else %}
         <div class="col-12 text-center text-muted py-5">
-            <i class="bi bi-inbox display-4"></i>
-            <p class="mt-2">Нет бронирований</p>
+            <p>Нет бронирований</p>
         </div>
         {% endfor %}
     </div>

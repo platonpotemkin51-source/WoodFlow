@@ -1,6 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Склад — WoodFlow{% endblock %}
 {% block content %}
+<style>
+    /* Дополнение для четких границ как на скриншоте */
+    .table-bordered th,
+    .table-bordered td {
+        border: 1px solid var(--wf-border) !important;
+    }
+
+    /* Уменьшаем шрифт, чтобы широкая таблица влезла */
+    .table-dense {
+        font-size: 0.85rem;
+    }
+    .table-dense th {
+        font-size: 0.8rem;
+        padding: 4px; /* Компактные отступы */
+    }
+    .table-dense td {
+        padding: 4px;
+    }
+    .bg-green {
+        background-color: #d4edda !important;
+    }
+
+    .bg-yellow {
+        background-color: #fff3cd !important;
+    }
+
+    .bg-red {
+        background-color: #f8d7da !important;
+    }
+</style>
+
 <div class="row justify-content-center">
 <div class="col-lg-11">
 
@@ -15,15 +46,6 @@
     <div class="card wf-card mb-3">
         <div class="card-body py-2">
             <form method="get" class="row g-2 align-items-end">
-                <div class="col-auto">
-                    <label class="form-label small mb-0">Порода</label>
-                    <select name="species" class="form-select form-select-sm">
-                        <option value="">Все</option>
-                        {% for s in all_species %}
-                        <option {{ "selected" if s == f_species }}>{{ s }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
                 <div class="col-auto">
                     <label class="form-label small mb-0">Ширина</label>
                     <select name="width" class="form-select form-select-sm">
@@ -46,7 +68,6 @@
                     <label class="form-label small mb-0">Сортировка</label>
                     <select name="sort" class="form-select form-select-sm">
                         <option value="date_desc" {{ "selected" if sort == "date_desc" }}>По дате ↓</option>
-                        <option value="species" {{ "selected" if sort == "species" }}>По породе</option>
                         <option value="width" {{ "selected" if sort == "width" }}>По ширине</option>
                         <option value="volume" {{ "selected" if sort == "volume" }}>По объёму ↓</option>
                     </select>
@@ -62,64 +83,167 @@
     <!-- ИТОГИ -->
     <div class="d-flex gap-4 mb-2 small text-muted">
         <span><b>Объём:</b> {{ sum_volume }} м³</span>
-        <span><b>Стоимость:</b> {{ "{:,.0f}".format(sum_price).replace(",", " ") }} ₽</span>
+        <span><b>Вес:</b> {{ sum_weight }} кг</span>
     </div>
 
-    <!-- ТАБЛИЦА -->
+        <!-- ТАБЛИЦА -->
     <div class="card wf-card">
         <div class="table-responsive">
-        <table class="table table-hover table-sm mb-0 align-middle">
-            <thead class="wf-thead">
+            <!-- Добавил класс table-bordered для сетки и text-center для выравнивания -->
+            <table class="table table-bordered table-hover table-sm mb-0 align-middle text-center table-dense">
+                <thead class="wf-thead">
+                    <!-- Ряд заголовков 0 -->
+                    <tr>
+                        <th colspan="12">покупатель (характеристики доски)</th>
+                        <th colspan="10">отправка (характеристики пачки)</th>
+                    </tr>
+                    <!-- Ряд заголовков 1 -->
+                    <tr>
+                        <!-- No.package (объединяет 2 строки) -->
+                        <th rowspan="2" style="vertical-align: middle;">№ пачки</th>
+
+                        <!-- Размеры доски (заголовки верхнего уровня) -->
+                        <th colspan="2">ширина (мм)</th>
+                        <th colspan="2">толщин (мм)</th>
+                        <th colspan="2">длина (мм)</th>
+
+                        <!-- Кол-во (верхняя часть) -->
+                        <th rowspan="2" style="vertical-align: middle;">кол-во<br> шт.</th>
+                        <th rowspan="2" style="vertical-align: middle;">кол-во<br> рядов</th>
+                        <th rowspan="2" style="vertical-align: middle;">кол-во<br> столбцов</th>
+
+                        <!-- Объем доски (верхний уровень, объединяет номин/факт) -->
+                        <th colspan="2">объем (м³)</th>
+
+                        <!-- Параметры пачки -->
+                        <th rowspan="2" style="vertical-align: middle;">высота<br> (мм)</th>
+                        <th rowspan="2" style="vertical-align: middle;">ширина<br> (мм)</th>
+                        <th rowspan="2" style="vertical-align: middle;">длина<br> (мм)</th>
+
+                        <!-- Объем пачки -->
+                        <th colspan="2">объем (м³)</th>
+
+                        <!-- Вес и Сорт -->
+                        <th rowspan="2" style="vertical-align: middle;">вес (кг)</th>
+                        <th rowspan="2" style="vertical-align: middle;">сорт</th>
+
+                        <th rowspan="2" style="vertical-align: middle;">статус</th>
+
+                        <th rowspan="2" style="vertical-align: middle;">дата создания</th>
+
+                        <!-- Действия (моя рекомендация оставить их) -->
+                        <th rowspan="2" style="vertical-align: middle; width: 50px;">
+                            <i class="bi bi-gear"></i>
+                        </th>
+                    </tr>
+
+                    <!-- Ряд заголовков 2 (подзаголовки) -->
+                    <tr>
+                        <!-- Под "ширина" -->
+                        <th>номин.</th>
+                        <th>факт.</th>
+                        <!-- Под "толщин" -->
+                        <th>номин.</th>
+                        <th>факт.</th>
+                        <!-- Под "длина" -->
+                        <th>номин.</th>
+                        <th>факт.</th>
+
+                        <!-- Под "объем м3" -->
+                        <th>номин.</th>
+                        <th>факт.</th>
+
+                        <!-- Под "объем пачки" -->
+                        <th>номин.</th>
+                        <th>факт.</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for p in packs.items %}
                 <tr>
-                    <th>#</th><th>Порода</th><th>Тип</th><th>Сорт</th>
-                    <th>Ширина</th><th>Толщина</th><th>Длина</th>
-                    <th>Кол-во</th><th>Объём</th><th>Цена/м³</th>
-                    <th>Статус</th><th>Дата</th><th></th>
+                    <!-- No.package -->
+                    <td class="fw-bold text-wf-green">{{ p.number_pac }}</td>
+
+                    <!-- Размеры доски -->
+                    <td>{{ p.width_nominal_for_pok|int if p.width_nominal_for_pok else "---" }}</td>
+                    <td>{{ p.width_fact_for_pok|int if p.width_fact_for_pok else "---" }}</td>
+                    <td>{{ p.thickness_nominal_for_pok|int if p.thickness_nominal_for_pok else "---" }}</td>
+                    <td>{{ p.thickness_fact_for_pok|int if p.thickness_fact_for_pok else "---" }}</td>
+                    <td>{{ p.length_nominal|int if p.length_nominal else "---" }}</td>
+                    <td>{{ p.length_fact|int if p.length_fact else "---" }}</td>
+
+                    <!-- Кол-во -->
+                    <td>{{ p.quantity if p.quantity else "---" }}</td>
+                    <td>{{ p.quantity_layers if p.quantity_layers else "---" }}</td>
+                    <td>{{ p.quantity_in_layer if p.quantity_in_layer else "---" }}</td>
+
+                    <!-- Объем доски (Метрики из базы) -->
+                    <td>{{ p.volume_nominal_for_pok | round(3) if p.volume_nominal_for_pok else "---" }}</td> <!-- Номинальный -->
+                    <td>{{ p.volume_fact_for_pok | round(3) if p.volume_fact_for_pok else "---" }}</td> <!-- Фактический (заглушка, если нет в БД) -->
+
+                    <!-- Параметры пачки (Заглушки, нужно заменить на p.rows, p.height и т.д.) -->
+                    <td>{{ p.thickness_fact_for_tam|int }}</td> <!-- Высота -->
+                    <td>{{ p.width_fact_for_tam|int }}</td>  <!-- Ширина пачки -->
+                    <td>{{ p.length_pack|int }}</td> <!-- Длина пачки -->
+
+                    <!-- Объем пачки -->
+                    <td>{{ p.volume_nominal_for_tam | round(3)}}</td>
+                    <td>{{ p.volume_fact_for_tam | round(3) }}</td>
+
+                    <!-- Вес -->
+                    <td>{{ p.weight_nominal_for_tam| round(1) }}</td>
+
+                    <!-- Сорт -->
+                    <td>{{ p.grade }}</td>
+
+                    <!-- Статус -->
+                    <td>
+                        <span class="
+                        {% if p.status == 'на_складе' %} badge bg-success
+                        {% elif p.status == 'забронирована' %} badge bg-warning text-dark
+                        {% elif p.status in ['отправлена', 'продана'] %} badge bg-danger
+                        {% endif %}
+                        ">
+                            {{ p.status }}
+                        </span>
+                    </td>
+
+                    <!-- Статус -->
+                    <td>{{ p.created_at.strftime("%Y.%m.%d") }}</td>
+
+                    <!-- Кнопки действий -->
+                    <td>
+                        {% if p.status == 'на_складе' %}
+                        <div class="dropdown">
+                            <button class="btn btn-link btn-sm text-muted p-0" type="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-three-dots-vertical"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('edit_pack', pack_id=p.id) }}">
+                                        <i class="bi bi-pencil me-2"></i>Редактировать
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" action="{{ url_for('delete_pack', pack_id=p.id) }}"
+                                          onsubmit="return confirm('Удалить пачку #{{ p.id }}?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button class="dropdown-item text-danger">
+                                            <i class="bi bi-trash me-2"></i>Удалить
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-            {% for p in packs.items %}
-            <tr>
-                <td>{{ p.id }}</td>
-                <td>{{ p.species }}</td>
-                <td>{{ p.wood_type }}</td>
-                <td>{{ p.grade }}</td>
-                <td>{{ p.width|int }} мм</td>
-                <td>{{ p.thickness|int }} мм</td>
-                <td>{{ p.length }} м</td>
-                <td>{{ p.quantity }}</td>
-                <td><b>{{ p.volume }} м³</b></td>
-                <td>{{ "{:,.0f}".format(p.price_per_m3).replace(",", " ") }}</td>
-                <td>
-                    {% if p.status == 'на_складе' %}
-                    <span class="badge bg-success">На складе</span>
-                    {% elif p.status == 'забронирована' %}
-                    <span class="badge bg-warning text-dark">Забронирована</span>
-                    {% else %}
-                    <span class="badge bg-info">Отправлена</span>
-                    {% endif %}
-                </td>
-                <td class="small">{{ p.created_at.strftime('%d.%m.%y') }}</td>
-                <td>
-                    {% if p.status == 'на_складе' %}
-                    <div class="btn-group btn-group-sm">
-                        <a href="{{ url_for('edit_pack', pack_id=p.id) }}" class="btn btn-outline-secondary" title="Редактировать">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <form method="post" action="{{ url_for('delete_pack', pack_id=p.id) }}" style="display:inline"
-                              onsubmit="return confirm('Удалить пачку #{{ p.id }}?')">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button class="btn btn-outline-danger" title="Удалить"><i class="bi bi-trash"></i></button>
-                        </form>
-                    </div>
-                    {% endif %}
-                </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="13" class="text-center text-muted py-4">Нет данных</td></tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                {% else %}
+                <tr><td colspan="16" class="text-center text-muted py-4">Нет данных</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 

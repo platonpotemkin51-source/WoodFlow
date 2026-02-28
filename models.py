@@ -42,50 +42,44 @@ class WoodPack(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # ---
-    number_pac = db.Column(db.String(16), default="")  # номер пачки
+    number_pac = db.Column(db.String(16), default="", nullable=False)  # номер пачки
     grade = db.Column(db.String(5), default="")  # сорт
     #--- ширина
     width_fact_for_tam = db.Column(db.Float, nullable=False)  # мм ширина пачки
-    width_fact_for_pok = db.Column(db.Float, nullable=False)  # мм ширина доски
+    width_fact_for_pok = db.Column(db.Float, nullable=True)  # мм ширина доски
     @property
     def width_nominal_for_pok(self):
         return self.width_fact_for_pok - 3
-    #--- толщина
+    #--- толщина/высота
     thickness_fact_for_tam = db.Column(db.Float, nullable=False)  # мм толщина пачки
-    thickness_fact_for_pok = db.Column(db.Float, nullable=False)  # мм толщина доски
+    thickness_fact_for_pok = db.Column(db.Float, nullable=True)  # мм толщина доски
     @property
     def thickness_nominal_for_pok(self):
         return self.thickness_fact_for_pok - 3
     #--- длина
-    length_fact = db.Column(db.Float, nullable=False)  # мм длина пачки и доски
-    length_nominal = db.Column(db.Float, nullable=False)  # мм длина пачки и доски
+    length_nominal = db.Column(db.Float, nullable=True)  # мм длина доски
+    length_fact = db.Column(db.Float, nullable=True)  # мм длина доски
+    length_pack = db.Column(db.Float, nullable=False)  # мм длина пачки
     #--- количества
-    quantity_layers = db.Column(db.Integer, nullable=False) # количество слоёв
-    quantity_in_layer = db.Column(db.Integer, nullable=False) # количество в слою
-    @property
-    def quantity(self):
-        return self.quantity_layers * self.quantity_in_layer
-    #---
-    # volume = db.Column(db.Float, nullable=False)  # м³
-    # weight = db.Column(db.Float, nullable=False)  # кг
-
-
+    quantity = db.Column(db.Integer, nullable=True) # количество
+    quantity_layers = db.Column(db.Integer, nullable=True) # количество слоёв
+    quantity_in_layer = db.Column(db.Integer, nullable=True) # количество в слою
     # --- Объёмы
 
     # Перебрать
     @property
     def volume_nominal_for_pok(self):
         return self.width_nominal_for_pok * self.thickness_nominal_for_pok * self.length_nominal * self.quantity * (
-                    10 ** (-9)) * k_sh  # м³
+                    10 ** (-9)) # м³
 
     @property
     def volume_fact_for_pok(self):
         return self.width_fact_for_pok * self.thickness_fact_for_pok * self.length_fact * self.quantity * (
-                    10 ** (-9)) * k_sh  # м³
+                    10 ** (-9))  # м³
 
     @property
     def volume_fact_for_tam(self):
-        return self.width_fact_for_tam * self.thickness_fact_for_tam * self.length_fact * self.quantity * (
+        return self.width_fact_for_tam * self.thickness_fact_for_tam * self.length_pack * self.quantity * (
                     10 ** (-9))   # м³
 
     @property
@@ -96,15 +90,19 @@ class WoodPack(db.Model):
 
     @property
     def weight_nominal_for_pok(self):
-        return self.volume_nominal_for_pok() * pl   # кг
+        return self.volume_nominal_for_pok * pl   # кг
+
+    @property
+    def weight_nominal_for_tam(self):
+        return self.volume_nominal_for_tam * pl
 
     @property
     def weight_fact_for_pok(self):
-        return self.volume_fact_for_pok() * pl  # кг
+        return self.volume_fact_for_pok * pl  # кг
 
     @property
     def weight_fact_for_tam(self):
-        return self.volume_fact_for_tam() * pl     # кг
+        return self.volume_fact_for_tam * pl     # кг
 
     #---
     status = db.Column(db.String(20), default="на_складе")
@@ -161,6 +159,10 @@ class Booking(db.Model):
         return self.total_volume_fact_for_pok * pl
 
     @property
+    def total_weight_nominal_for_tam(self):
+        return self.total_volume_nominal_for_tam * pl
+
+    @property
     def total_weight_fact_for_tam(self):
         return self.total_volume_fact_for_tam * pl
 
@@ -168,7 +170,7 @@ class Booking(db.Model):
     @property
     def total_price(self):
         # return round(sum(p.volume * p.price_per_m3 for p in self.packs), 2)
-        return round(self.total_volume_fact_for_pok * self.price_per_m3 , 2)
+        return round(self.total_volume_fact_for_tam * self.price_per_m3 , 2)
 
     # --- Количество пачек
     @property

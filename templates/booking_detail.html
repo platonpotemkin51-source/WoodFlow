@@ -18,7 +18,7 @@
                 {% endif %}
             </h2>
             <p class="text-muted mb-0">
-                {{ booking.customer_name }} &bull; {{ booking.destination }} &bull;
+                {{ booking.company_name }} &bull;
                 {{ booking.created_at.strftime('%d.%m.%Y %H:%M') }}
             </p>
         </div>
@@ -46,19 +46,31 @@
     <div class="row g-3 mb-4">
         <div class="col-auto">
             <div class="card wf-card px-3 py-2 text-center">
-                <div class="fw-bold fs-5">{{ booking.pack_count }}</div>
+                <div class="fw-bold fs-5">{{ booking.pack_count | int }}</div>
                 <div class="small text-muted">пачек</div>
             </div>
         </div>
         <div class="col-auto">
             <div class="card wf-card px-3 py-2 text-center">
-                <div class="fw-bold fs-5">{{ booking.total_volume }} м³</div>
-                <div class="small text-muted">объём</div>
+                <div class="fw-bold fs-5">{{ booking.total_volume_nominal_for_tam | round(3)}} м³</div>
+                <div class="small text-muted">объём номин.</div>
             </div>
         </div>
         <div class="col-auto">
             <div class="card wf-card px-3 py-2 text-center">
-                <div class="fw-bold fs-5">{{ "{:,.0f}".format(booking.total_price).replace(",", " ") }} ₽</div>
+                <div class="fw-bold fs-5">{{ booking.total_volume_fact_for_tam | round(3) }} м³</div>
+                <div class="small text-muted">объём факт.</div>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="card wf-card px-3 py-2 text-center">
+                <div class="fw-bold fs-5">{{ booking.total_weight_nominal_for_tam | round(1) }} кг</div>
+                <div class="small text-muted">вес</div>
+            </div>
+        </div>
+        <div class="col-auto">
+            <div class="card wf-card px-3 py-2 text-center">
+                <div class="fw-bold fs-5">{{ booking.total_price | round(1) }} ₽</div>
                 <div class="small text-muted">стоимость</div>
             </div>
         </div>
@@ -72,22 +84,23 @@
         <div class="table-responsive">
         <table class="table table-sm table-hover mb-0 align-middle">
             <thead class="wf-thead"><tr>
-                <th>#</th><th>Порода</th><th>Тип</th><th>Сорт</th>
-                <th>Размер</th><th>Кол-во</th><th>Объём</th><th>Цена/м³</th><th>Сумма</th>
+                <th>№ пачки</th><th>Ширина</th><th>Высота</th>
+                <th>Длина</th><th>Объём факт.</th><th>Объём номин.</th><th>Вес</th><th>Цена/м³</th><th>Стоимость</th>
                 {% if booking.status == 'активная' %}<th></th>{% endif %}
-            </tr></thead>
+            </tr>
+            </thead>
             <tbody>
             {% for p in booking.packs %}
             <tr>
-                <td>{{ p.id }}</td>
-                <td>{{ p.species }}</td>
-                <td>{{ p.wood_type }}</td>
-                <td>{{ p.grade }}</td>
-                <td>{{ p.width|int }}×{{ p.thickness|int }}×{{ p.length }}м</td>
-                <td>{{ p.quantity }}</td>
-                <td><b>{{ p.volume }}</b></td>
-                <td>{{ "{:,.0f}".format(p.price_per_m3).replace(",", " ") }}</td>
-                <td>{{ "{:,.0f}".format(p.total_price).replace(",", " ") }}</td>
+                <td>{{ p.number_pac }}</td>
+                <td>{{ p.width_fact_for_tam | int }}</td>
+                <td>{{ p.thickness_fact_for_tam | int }}</td>
+                <td>{{ p.length_pack | int }}</td>
+                <td><b>{{ p.volume_nominal_for_tam | round(3) }}</b></td>
+                <td><b>{{ p.volume_fact_for_tam | round(3) }}</b></td>
+                <td><b>{{ p.weight_nominal_for_tam | round(2) }}</b></td>
+                <td>{{ booking.price_per_m3 | int }}</td>
+                <td><b>{{ booking.price_per_m3 * p.volume_fact_for_tam | round(1) }}</b></td>
                 {% if booking.status == 'активная' %}
                 <td>
                     <form method="post"
@@ -101,7 +114,7 @@
                 {% endif %}
             </tr>
             {% else %}
-            <tr><td colspan="10" class="text-center text-muted py-3">Пачки не добавлены</td></tr>
+            <tr><td colspan="12" class="text-center text-muted py-3">Пачки не добавлены</td></tr>
             {% endfor %}
             </tbody>
         </table>
@@ -128,21 +141,23 @@
                     <table class="table table-sm table-hover mb-0 align-middle" id="availableTable">
                         <thead class="wf-thead sticky-top"><tr>
                             <th><input type="checkbox" id="selectAll"></th>
-                            <th>#</th><th>Порода</th><th>Тип</th><th>Сорт</th>
-                            <th>Размер</th><th>Кол-во</th><th>Объём</th><th>Цена/м³</th>
-                        </tr></thead>
+                            <<th>№ пачки</th><th>Ширина</th><th>Высота</th>
+                            <th>Длина</th><th>Объём номин.</th><th><b>Объём факт.</b></th>
+                            <th><b>Вес</b></th><th>Цена/м³</th><th><b>Стоимость</b></th>
+                        </thead>
                         <tbody>
                         {% for p in available_packs %}
                         <tr class="pack-row">
                             <td><input type="checkbox" name="pack_ids" value="{{ p.id }}"></td>
-                            <td>{{ p.id }}</td>
-                            <td>{{ p.species }}</td>
-                            <td>{{ p.wood_type }}</td>
-                            <td>{{ p.grade }}</td>
-                            <td>{{ p.width|int }}×{{ p.thickness|int }}×{{ p.length }}м</td>
-                            <td>{{ p.quantity }}</td>
-                            <td>{{ p.volume }}</td>
-                            <td>{{ "{:,.0f}".format(p.price_per_m3).replace(",", " ") }}</td>
+                            <td>{{ p.number_pac }}</td>
+                            <td>{{ p.width_fact_for_tam | int }}</td>
+                            <td>{{ p.thickness_fact_for_tam | int }}</td>
+                            <td>{{ p.length_pack | int }}</td>
+                            <td>{{ p.volume_nominal_for_tam | round(3) }}</td>
+                            <td><b>{{ p.volume_fact_for_tam | round(3)}}</b></td>
+                            <td><b>{{ p.weight_nominal_for_tam | round(3) }}</b></td>
+                            <td>{{ booking.price_per_m3 | int }}</td>
+                            <td><b>{{ booking.price_per_m3 * p.volume_fact_for_tam | round(1) }}</b></td>
                         </tr>
                         {% endfor %}
                         </tbody>

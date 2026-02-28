@@ -226,13 +226,10 @@ def stock():
     q = WoodPack.query
 
     # фильтры
-    f_species = request.args.get("species", "")
     f_width = request.args.get("width", "")
     f_status = request.args.get("status", "")
-    if f_species:
-        q = q.filter(WoodPack.species == f_species)
     if f_width:
-        q = q.filter(WoodPack.width == float(f_width))
+        q = q.filter(WoodPack.width_fact_for_pok == f_width)
     if f_status:
         q = q.filter(WoodPack.status == f_status)
     else:
@@ -240,11 +237,9 @@ def stock():
 
     sort = request.args.get("sort", "date_desc")
     if sort == "width":
-        q = q.order_by(WoodPack.width)
+        q = q.order_by(WoodPack.width_fact_for_pok)
     elif sort == "volume":
         q = q.order_by(WoodPack.volume.desc())
-    elif sort == "species":
-        q = q.order_by(WoodPack.species)
     else:
         q = q.order_by(WoodPack.created_at.desc())
 
@@ -252,35 +247,27 @@ def stock():
     packs = q.paginate(page=page, per_page=25, error_out=False)
 
     # данные для фильтров
-    all_species = (
-        db.session.query(WoodPack.species)
-        .distinct()
-        .order_by(WoodPack.species)
-        .all()
-    )
     all_widths = (
-        db.session.query(WoodPack.width)
+        db.session.query(WoodPack.width_fact_for_pok)
         .distinct()
-        .order_by(WoodPack.width)
+        .order_by(WoodPack.width_fact_for_pok)
         .all()
     )
 
     # суммы
     displayed_packs = q.all()
-    sum_volume = round(sum(p.volume for p in displayed_packs), 4)
-    sum_price = round(sum(p.volume * p.price_per_m3 for p in displayed_packs), 2)
+    sum_volume = round(sum(p.volume_nominal_for_pok for p in displayed_packs), 4)
+    sum_weight = round(sum(p.weight_nominal_for_pok for p in displayed_packs), 4)
 
     return render_template(
         "stock.html",
         packs=packs,
-        all_species=[s[0] for s in all_species],
         all_widths=[w[0] for w in all_widths],
-        f_species=f_species,
         f_width=f_width,
         f_status=f_status,
         sort=sort,
         sum_volume=sum_volume,
-        sum_price=sum_price,
+        sum_weight=sum_weight
     )
 
 
@@ -292,23 +279,25 @@ def add_pack():
     """
     if request.method == "POST":
         try:
-            number_pac = request.form.grt("number_pac","")
+            number_pac = request.form.get("number_pac","")
             grade = request.form.get("grade","")
 
             width_fact_for_tam = float(request.form["width_fact_for_tam"])
             width_fact_for_pok = float(request.form["width_fact_for_pok"])
             # width_nominal_for_pok = width_fact_for_pok - 1
 
-            thickness_fact_for_tam = float(request.form[" thickness_fact_for_tam"])
-            thickness_fact_for_pok = float(request.form[" thickness_fact_for_pok"])
+            thickness_fact_for_tam = float(request.form["thickness_fact_for_tam"])
+            thickness_fact_for_pok = float(request.form["thickness_fact_for_pok"])
             # thickness_nominal_for_pok = thickness_fact_for_pok - 3
 
+            length_pack = float(request.form["length_pack"])
             length_fact = float(request.form["length_fact"])
             length_nominal = float(request.form["length_nominal"])
 
+            quantity = int(request.form["quantity"])
             quantity_layers = int(request.form["quantity_layers"])
             quantity_in_layer = int(request.form["quantity_in_layer"])
-            quantity = quantity_layers * quantity_in_layer
+            #quantity = quantity_layers * quantity_in_layer
 
             volume_fact_for_pok = round(calc_volume(width_fact_for_pok, thickness_fact_for_pok, length_fact, quantity*0.92),7)
 
@@ -322,6 +311,7 @@ def add_pack():
                 thickness_fact_for_tam=thickness_fact_for_tam,
                 thickness_fact_for_pok=thickness_fact_for_pok,
 
+                length_pack=length_pack,
                 length_fact=length_fact,
                 length_nominal=length_nominal,
 
@@ -355,7 +345,7 @@ def edit_pack(pack_id):
 
     if request.method == "POST":
         try:
-            pack.number_pac = request.form.grt("number_pac", "")
+            pack.number_pac = request.form.get("number_pac", "")
             pack.grade = request.form.get("grade", "")
 
             pack.width_fact_for_tam = float(request.form["width_fact_for_tam"])
@@ -369,9 +359,10 @@ def edit_pack(pack_id):
             pack.length_fact = float(request.form["length_fact"])
             pack.length_nominal = float(request.form["length_nominal"])
 
+            pack.quantity = int(request.form["quantity"])
             pack.quantity_layers = int(request.form["quantity_layers"])
             pack.quantity_in_layer = int(request.form["quantity_in_layer"])
-            quantity = pack.quantity_layers * pack.quantity_in_layer
+            #quantity = pack.quantity_layers * pack.quantity_in_layer
 
             pack.volume_fact_for_pok = round(
                 calc_volume(pack.width_fact_for_pok, pack.thickness_fact_for_pok, pack.length_fact, quantity * 0.92), 7)
@@ -448,7 +439,7 @@ def booking_detail(booking_id):
 
     available_packs = (
         WoodPack.query.filter_by(status="на_складе")
-        .order_by(WoodPack.width, WoodPack.grade)
+        .order_by(WoodPack.width_fact_for_pok, WoodPack.grade)
         .all()
     )
     return render_template(

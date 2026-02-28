@@ -8,21 +8,42 @@
         <div class="card-body">
             <form method="post">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                 <div class="mb-3">
-                    <label class="form-label">Заказчик</label>
-                    <input type="text" name="customer_name" class="form-control" placeholder="ООО «Компания»">
+                    <label class="form-label">Название компании</label>
+                    <input type="text" name="company_name" class="form-control" list="companyList">
+                    <datalist id="companyList">
+                        <option value="TENG YU SUPPLY CHAIN COMPANY LIMITED">
+                    </datalist>
                 </div>
+
                 <div class="mb-3">
-                    <label class="form-label">Пункт назначения</label>
-                    <input type="text" name="destination" class="form-control" placeholder="г. Москва">
+                    <label class="form-label">Адрес</label>
+                    <input type="text" name="adres" class="form-control" list="adressList">
+                    <datalist id="adressList">
+                        <option value="NO. 48, BLOCK M, LY THAI TO STREET, BINH DUONG WARD,HO CHI MINH CITY, VIETNAM">
+                    </datalist>
                 </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Контракт</label>
+                    <input type="text" name="contract" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Цена за м³ (руб)</label>
+                    <input type="number" step="0.01" name="price_per_m3" class="form-control">
+                </div>
+
                 <div class="mb-3">
                     <label class="form-label">Примечания</label>
                     <textarea name="notes" class="form-control" rows="3"></textarea>
                 </div>
+
                 <button type="submit" class="btn btn-wf-green">
                     <i class="bi bi-check-lg"></i> Создать
                 </button>
+
                 <a href="{{ url_for('bookings') }}" class="btn btn-outline-secondary ms-2">Отмена</a>
             </form>
         </div>

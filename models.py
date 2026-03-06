@@ -136,7 +136,7 @@ class Booking(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     number = db.Column(db.String(50), unique=True, nullable=False)
-    company_name = db.Column(db.String(150), default="")
+    company_name = db.Column(db.String(100), nullable=False)
     adres = db.Column(db.String(250), default="")
     status = db.Column(db.String(20), default="активная")      # активная / отправлена / отменена
     notes = db.Column(db.Text, default="")

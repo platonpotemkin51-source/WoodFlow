@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, UTC
+from itertools import count
 
 from flask import (
     Flask, render_template, redirect, url_for,
@@ -74,7 +75,7 @@ def admin_required(f):
     def decorated(*args, **kwargs):
         if not current_user.is_authenticated or not current_user.is_admin:
             flash("Доступ запрещён.", "danger")
-            return redirect(url_for("dashboard"))
+            return redirect(url_for("stock"))
         return f(*args, **kwargs)
 
     return decorated
@@ -97,7 +98,10 @@ def login():
                 return redirect(url_for("login"))
             login_user(user)
             flash(f"Добро пожаловать, {user.full_name or user.username}!", "success")
-            return redirect(request.args.get("next") or url_for("dashboard"))
+            if user.is_admin:
+                return redirect(request.args.get("next") or url_for("dashboard"))
+            else:
+                return redirect(url_for("stock"))
         flash("Неверный логин или пароль.", "danger")
     return render_template("login.html")
 
@@ -114,6 +118,7 @@ def logout():
 # ══════════════════════════════════════════════
 @app.route("/")
 @login_required
+@admin_required
 def dashboard():
     now = datetime.now(UTC)
 
@@ -176,28 +181,158 @@ def dashboard():
 
 
 # ── API для графиков ──
-@app.route("/api/revenue-chart")
+@app.route("/api/revenue")
 @login_required
-def api_revenue_chart():
-    """Помесячная выручка за текущий год."""
-    year = datetime.now(UTC).year
-    data = (
+def api_revenue():
+    period = request.args.get("period", "month")
+    now = datetime.now(UTC)
+    year = now.year
+
+    base_query = (
         db.session.query(
-            extract("month", Shipment.shipped_at).label("m"),
-            func.coalesce(func.sum(Booking.total_price), 0).label("total"),
+            func.sum(Booking.total_price).label("total"),
+            Shipment.shipped_at,
         )
+        .join(Shipment, Shipment.booking_id == Booking.id)
         .filter(extract("year", Shipment.shipped_at) == year)
-        .group_by("m")
-        .all()
     )
-    months = [
-        "Янв", "Фев", "Мар", "Апр", "Май", "Июн",
-        "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек",
-    ]
-    values = [0] * 12
-    for row in data:
-        values[int(row.m) - 1] = round(float(row.total), 2)
-    return jsonify(labels=months, values=values)
+
+    if period == "month":
+        data = (
+            db.session.query(
+                extract("day", Shipment.shipped_at).label("d"),
+                func.sum(Booking.total_price).label("total"),
+            )
+            .join(Shipment, Shipment.booking_id == Booking.id)
+            .filter(
+                extract("year", Shipment.shipped_at) == year,
+                extract("month", Shipment.shipped_at) == now.month,
+            )
+            .group_by("d")
+            .order_by("d")
+            .all()
+        )
+
+        labels = [str(int(r.d)) for r in data]
+        values = [round(float(r.total), 2) for r in data]
+
+    elif period == "quarter":
+        quarter = (now.month - 1) // 3 + 1
+        data = (
+            db.session.query(
+                extract("month", Shipment.shipped_at).label("m"),
+                func.sum(Booking.total_price).label("total"),
+            )
+            .join(Shipment, Shipment.booking_id == Booking.id)
+            .filter(
+                extract("year", Shipment.shipped_at) == year,
+                func.ceil(extract("month", Shipment.shipped_at) / 3) == quarter,
+            )
+            .group_by("m")
+            .order_by("m")
+            .all()
+        )
+
+        labels = [f"М{int(r.m)}" for r in data]
+        values = [round(float(r.total), 2) for r in data]
+
+    else:  # year
+        data = (
+            db.session.query(
+                extract("month", Shipment.shipped_at).label("m"),
+                func.sum(Booking.total_price).label("total"),
+            )
+            .join(Shipment, Shipment.booking_id == Booking.id)
+            .filter(extract("year", Shipment.shipped_at) == year)
+            .group_by("m")
+            .order_by("m")
+            .all()
+        )
+
+        months = [
+            "Янв","Фев","Мар","Апр","Май","Июн",
+            "Июл","Авг","Сен","Окт","Ноя","Дек"
+        ]
+        values = [0] * 12
+
+        for r in data:
+            values[int(r.m) - 1] = round(float(r.total), 2)
+
+        labels = months
+
+    return jsonify(labels=labels, values=values)
+
+@app.route("/api/shipment-volume")
+@login_required
+def api_shipment_volume():
+    period = request.args.get("period", "month")
+    now = datetime.now(UTC)
+    year = now.year
+
+    if period == "month":
+        data = (
+            db.session.query(
+                extract("day", Shipment.shipped_at).label("d"),
+                func.sum(Booking.total_volume_nominal_for_tam).label("vol"),
+            )
+            .join(Shipment, Shipment.booking_id == Booking.id)
+            .filter(
+                extract("year", Shipment.shipped_at) == year,
+                extract("month", Shipment.shipped_at) == now.month,
+            )
+            .group_by("d")
+            .order_by("d")
+            .all()
+        )
+
+        labels = [str(int(r.d)) for r in data]
+        values = [round(float(r.vol), 2) for r in data]
+
+    elif period == "quarter":
+        quarter = (now.month - 1) // 3 + 1
+        data = (
+            db.session.query(
+                extract("month", Shipment.shipped_at).label("m"),
+                func.sum(Booking.total_volume_nominal_for_tam).label("vol"),
+            )
+            .join(Shipment, Shipment.booking_id == Booking.id)
+            .filter(
+                extract("year", Shipment.shipped_at) == year,
+                func.ceil(extract("month", Shipment.shipped_at) / 3) == quarter,
+            )
+            .group_by("m")
+            .order_by("m")
+            .all()
+        )
+
+        labels = [f"М{int(r.m)}" for r in data]
+        values = [round(float(r.vol), 2) for r in data]
+
+    else:
+        data = (
+            db.session.query(
+                extract("month", Shipment.shipped_at).label("m"),
+                func.sum(Booking.total_volume_nominal_for_tam).label("vol"),
+            )
+            .join(Shipment, Shipment.booking_id == Booking.id)
+            .filter(extract("year", Shipment.shipped_at) == year)
+            .group_by("m")
+            .order_by("m")
+            .all()
+        )
+
+        months = [
+            "Янв","Фев","Мар","Апр","Май","Июн",
+            "Июл","Авг","Сен","Окт","Ноя","Дек"
+        ]
+        values = [0] * 12
+
+        for r in data:
+            values[int(r.m) - 1] = round(float(r.vol), 2)
+
+        labels = months
+
+    return jsonify(labels=labels, values=values)
 
 
 @app.route("/api/stock-by-width")
@@ -208,6 +343,7 @@ def api_stock_by_width():
         db.session.query(
             WoodPack.width_fact_for_pok,
             func.sum(WoodPack.volume_fact_for_tam).label("vol"),
+            func.count(WoodPack.id).label("count")
         )
         .filter(WoodPack.status == "на_складе")
         .group_by(WoodPack.width_fact_for_pok)
@@ -215,27 +351,32 @@ def api_stock_by_width():
         .all()
     )
     labels = [f"{int(r.width_fact_for_pok)} мм" for r in data]
-    values = [round(float(r.vol), 4) for r in data]
-    return jsonify(labels=labels, values=values)
+    counts = [r.count for r in data]
+    volumes = [round(float(r.vol), 4) for r in data]
+    return jsonify(labels=labels, counts=counts, volumes=volumes)
 
+@app.route("/api/last-shipments")
+def last_shipments():
 
-@app.route("/api/stock-by-species")
-@login_required
-def api_stock_by_species():
-    """Объём на складе по породам."""
-    data = (
-        db.session.query(
-            WoodPack.species,
-            func.sum(WoodPack.volume).label("vol"),
-        )
-        .filter(WoodPack.status == "на_складе")
-        .group_by(WoodPack.species)
+    shipments = (
+        Shipment.query
+        .order_by(Shipment.shipped_at.desc())
+        .limit(7)
         .all()
     )
-    labels = [r.species for r in data]
-    values = [round(float(r.vol), 4) for r in data]
-    return jsonify(labels=labels, values=values)
 
+    data = []
+
+    for s in shipments:
+        data.append({
+            "shipped_at": s.shipped_at.strftime("%d.%m.%Y"),
+            "company_name": s.booking.company_name if s.booking.company_name else "",
+            "logist_comp": s.logist_comp if s.logist_comp else "",
+            "volume_tam": round(s.booking.total_volume_nominal_for_tam, 2),
+            "price": round(s.booking.total_price, 2),
+        })
+
+    return jsonify(data)
 
 # ══════════════════════════════════════════════
 #  STOCK (СКЛАД)
@@ -632,7 +773,7 @@ def booking_excel(booking_id):
         flash("Нет данных для выгрузки.", "warning")
         return redirect(url_for("bookings"))
     buf = generate_shipment_excel(booking.shipment)
-    filename = f"Накладная_{booking.number}.xlsx"
+    filename = f"Отправка_партии_{booking.number}.xlsx"
     return send_file(buf, as_attachment=True, download_name=filename,
                      mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 

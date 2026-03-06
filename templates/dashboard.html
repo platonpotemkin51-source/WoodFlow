@@ -92,7 +92,7 @@
         <div class="row g-3 mb-4">
 
             <!-- Количество и объём пачек по ширинам -->
-            <div class="col-lg-12">
+            <div class="col-lg-7">
                 <div class="card wf-card">
                     <div class="card-header wf-card-header">
                         <i class="bi bi-rulers"></i> Пачки по ширинам (количество и объём)
@@ -101,9 +101,43 @@
                         <canvas id="widthChart" height="120"></canvas>
                     </div>
                 </div>
+                <div class="card wf-card">
+                    <div class="card-header wf-card-header">
+                        <i class="bi bi-rulers"></i> Объём по ширинам
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Дата</th>
+                                    <th>Клиент</th>
+                                    <th>Логист</th>
+                                    <th>Объем</th>
+                                    <th>Выручка</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="lastShipments"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
+            <!-- Количество и объём пачек по ширинам -->
+            <div class="col-lg-3">
+                <div class="card wf-card">
+                    <div class="card-header wf-card-header">
+                        <i class="bi bi-rulers"></i> Объём по ширинам
+                    </div>
+                    <div class="card-body">
+                        <canvas id="widthPie" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+
+
         </div>
+
 
 </div>
 </div>
@@ -223,7 +257,7 @@ fetch('/api/stock-by-width')
                         yAxisID: 'y'
                     },
                     {
-                        type: 'line',
+                        type: 'bar',
                         label: 'Объём (м³)',
                         data: d.volumes,
                         borderColor: GREEN,
@@ -261,7 +295,56 @@ fetch('/api/stock-by-width')
             }
         }
     );
+
+    // PIE график
+    widthPie = new Chart(
+        document.getElementById('widthPie'),
+        {
+            type: 'pie',
+            data: {
+                labels: d.labels,
+                datasets: [
+                    {
+                        label: 'Объем пачек',
+                        data: d.volumes,
+                        backgroundColor: PALETTE
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        }
+    );
 });
+
+fetch('/api/last-shipments')
+.then(r => r.json())
+.then(data => {
+
+    const tbody = document.getElementById('lastShipments')
+
+    tbody.innerHTML = ''
+
+    data.forEach(s => {
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${s.shipped_at}</td>
+                <td>${s.company_name}</td>
+                <td>${s.logist_comp}</td>
+                <td>${s.volume_tam}</td>
+                <td>${s.price}</td>
+            </tr>
+        `
+    })
+
+})
 
 /* ===============================
    Обработчики выбора периода

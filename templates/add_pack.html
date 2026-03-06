@@ -30,19 +30,34 @@
     <div class="col-md-2">
         <label class="form-label">Ширина пачки факт. (мм)</label>
         <input type="number" name="width_fact_for_tam" id="width_fact_for_tam"
-               class="form-control calc" required step="any" min="1">
+               class="form-control calc" required step="any" min="1" list="width2List">
+        <datalist id="width2List">
+            <option value="710">
+            <option value="720">
+            <option value="730">
+            <option value="1200">
+        </datalist>
     </div>
 
     <div class="col-md-2">
         <label class="form-label">Высота пачки факт. (мм)</label>
         <input type="number" name="thickness_fact_for_tam" id="thickness_fact_for_tam"
-               class="form-control calc" required step="any" min="1">
+               class="form-control calc" required step="any" min="1" list="thicknessList">
+        <datalist id="thicknessList">
+            <option value="1040">
+            <option value="1050">
+            <option value="1060">
+            <option value="1070">
+            <option value="1080">
+            <option value="1090">
+            <option value="1100">
+        </datalist>
     </div>
 
     <div class="col-md-3">
         <label class="form-label">Длина пачки факт. (мм)</label>
         <input type="number" name="length_pack" id="length_pack"
-               class="form-control calc" required step="any" min="1">
+               class="form-control calc" required step="any" min="1" value="2800">
     </div>
 
 </div>
@@ -67,21 +82,21 @@
     </div>
 
     <div class="col-md-2">
-        <label class="form-label">Высота доски факт. (мм)</label>
+        <label class="form-label">Толщина доски факт. (мм)</label>
         <input type="number" name="thickness_fact_for_pok" id="thickness_fact_for_pok"
-               class="form-control calc" required step="any" min="1">
+               class="form-control calc" required step="any" min="1" value="22">
     </div>
 
     <div class="col-md-2">
         <label class="form-label">Длина доски номин. (мм)</label>
         <input type="number" name="length_nominal" id="length_nominal"
-               class="form-control calc" required step="any" min="1">
+               class="form-control calc" required step="any" min="1" value="2750">
     </div>
 
     <div class="col-md-2">
         <label class="form-label">Длина доски факт. (мм)</label>
         <input type="number" name="length_fact" id="length_fact"
-               class="form-control calc" required step="any" min="1">
+               class="form-control calc" required step="any" min="1" value="2800">
     </div>
 
     <div class="col-md-2">

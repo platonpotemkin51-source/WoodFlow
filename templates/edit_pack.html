@@ -11,7 +11,7 @@
 
     <div class="col-md-3">
         <label class="form-label">Номер пачки</label>
-        <input type="number" name="number_pac" id="number_pac"
+        <input type="text" name="number_pac" id="number_pac"
                class="form-control" required
                value="{{ pack.number_pac }}">
     </div>
@@ -70,6 +70,7 @@
             <option value="22">
             <option value="32">
             <option value="41">
+            <option value="55">
             <option value="67">
             <option value="79">
         </datalist>
@@ -122,7 +123,7 @@
 
     <div class="col-md-2">
         <label class="form-label">Общее кол-во</label>
-        <input type="text" name="quantity" id="quantity"
+        <input type="number" name="quantity" id="quantity"
                class="form-control" required value="{{ pack.quantity }}">
     </div>
 

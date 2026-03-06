@@ -14,7 +14,6 @@
                     <div class="wf-metric-icon"><i class="bi bi-box-seam"></i></div>
                     <div class="wf-metric-value">{{ total_stock_packs }}</div>
                     <div class="wf-metric-label">Пачек на складе</div>
-                    <div class="text-muted small">{{ total_stock_volume }} м³</div>
                 </div>
             </div>
         </div>
@@ -22,8 +21,8 @@
             <div class="card wf-card wf-metric-card">
                 <div class="card-body text-center">
                     <div class="wf-metric-icon"><i class="bi bi-bookmark-check"></i></div>
-                    <div class="wf-metric-value">{{ active_bookings }}</div>
-                    <div class="wf-metric-label">Активных бронирований</div>
+                    <div class="wf-metric-value">{{ ready_shipment }}</div>
+                    <div class="wf-metric-label">Отправок за месяц</div>
                 </div>
             </div>
         </div>
@@ -31,7 +30,7 @@
             <div class="card wf-card wf-metric-card">
                 <div class="card-body text-center">
                     <div class="wf-metric-icon"><i class="bi bi-cash-stack"></i></div>
-                    <div class="wf-metric-value">{{ "{:,.0f}".format(month_revenue).replace(",", " ") }}</div>
+                    <div class="wf-metric-value">{{ month_revenue }}</div>
                     <div class="wf-metric-label">Выручка за месяц (₽)</div>
                 </div>
             </div>
@@ -40,7 +39,7 @@
             <div class="card wf-card wf-metric-card">
                 <div class="card-body text-center">
                     <div class="wf-metric-icon"><i class="bi bi-graph-up-arrow"></i></div>
-                    <div class="wf-metric-value">{{ "{:,.0f}".format(year_revenue).replace(",", " ") }}</div>
+                    <div class="wf-metric-value">{{ year_revenue }}</div>
                     <div class="wf-metric-label">Выручка за год (₽)</div>
                 </div>
             </div>
@@ -49,68 +48,62 @@
 
     <!-- ГРАФИКИ -->
     <div class="row g-3 mb-4">
-        <div class="col-lg-8">
+
+        <!-- Выручка -->
+        <div class="col-lg-6">
             <div class="card wf-card">
-                <div class="card-header wf-card-header">
-                    <i class="bi bi-bar-chart"></i> Выручка по месяцам ({{ now().year if now is defined else "2024" }})
+                <div class="card-header wf-card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-cash-coin"></i> Выручка
+                    </div>
+                    <select id="revenuePeriod" class="form-select form-select-sm w-auto">
+                        <option value="month">Месяц</option>
+                        <option value="quarter">Квартал</option>
+                        <option value="year">Год</option>
+                    </select>
                 </div>
                 <div class="card-body">
-                    <canvas id="revenueChart" height="100"></canvas>
+                    <canvas id="revenueChart" height="110"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col-lg-4">
+
+        <!-- Объём отправок -->
+        <div class="col-lg-6">
             <div class="card wf-card">
-                <div class="card-header wf-card-header">
-                    <i class="bi bi-pie-chart"></i> Склад по породам
+                <div class="card-header wf-card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="bi bi-truck"></i> Объём отправок (м³)
+                    </div>
+                    <select id="volumePeriod" class="form-select form-select-sm w-auto">
+                        <option value="month">Месяц</option>
+                        <option value="quarter">Квартал</option>
+                        <option value="year">Год</option>
+                    </select>
                 </div>
                 <div class="card-body">
-                    <canvas id="speciesChart" height="200"></canvas>
+                    <canvas id="shipmentVolumeChart" height="110"></canvas>
                 </div>
             </div>
         </div>
+
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-lg-7">
-            <div class="card wf-card">
-                <div class="card-header wf-card-header">
-                    <i class="bi bi-rulers"></i> Объём на складе по ширинам (м³)
-                </div>
-                <div class="card-body">
-                    <canvas id="widthChart" height="120"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-lg-5">
-            <div class="card wf-card">
-                <div class="card-header wf-card-header">
-                    <i class="bi bi-truck"></i> Последние отправки
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                    <table class="table table-sm mb-0">
-                        <thead class="wf-thead"><tr>
-                            <th>Номер</th><th>Дата</th><th>Объём</th><th>Сумма</th>
-                        </tr></thead>
-                        <tbody>
-                        {% for s in recent_shipments %}
-                        <tr class="cursor-pointer" onclick="location.href='{{ url_for('shipment_detail', shipment_id=s.id) }}'">
-                            <td>{{ s.booking.number }}</td>
-                            <td>{{ s.shipped_at.strftime('%d.%m.%Y') }}</td>
-                            <td>{{ s.total_volume }} м³</td>
-                            <td>{{ "{:,.0f}".format(s.total_price).replace(",", " ") }} ₽</td>
-                        </tr>
-                        {% else %}
-                        <tr><td colspan="4" class="text-center text-muted py-3">Нет отправок</td></tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
+        <div class="row g-3 mb-4">
+
+            <!-- Количество и объём пачек по ширинам -->
+            <div class="col-lg-12">
+                <div class="card wf-card">
+                    <div class="card-header wf-card-header">
+                        <i class="bi bi-rulers"></i> Пачки по ширинам (количество и объём)
+                    </div>
+                    <div class="card-body">
+                        <canvas id="widthChart" height="120"></canvas>
                     </div>
                 </div>
             </div>
+
         </div>
-    </div>
 
 </div>
 </div>
@@ -120,48 +113,167 @@
 <script>
 const GREEN = '#2D5F2D';
 const GREEN_LIGHT = 'rgba(45,95,45,0.6)';
-const BEIGE = '#D4C8B8';
 const PALETTE = [
     '#2D5F2D','#5B8C5A','#8FBC8F','#C8D5B9','#D4A373',
     '#E6CCB2','#B08968','#7F5539','#9C6644','#DDB892'
 ];
 
-// Выручка по месяцам
-fetch('/api/revenue-chart').then(r=>r.json()).then(d=>{
-    new Chart(document.getElementById('revenueChart'),{
-        type:'bar',
-        data:{labels:d.labels, datasets:[{
-            label:'Выручка (₽)', data:d.values,
-            backgroundColor: GREEN_LIGHT, borderColor: GREEN, borderWidth:1
-        }]},
-        options:{responsive:true, plugins:{legend:{display:false}},
-                 scales:{y:{beginAtZero:true}}}
-    });
+let revenueChart;
+let shipmentVolumeChart;
+let widthChart;
+
+/* ===============================
+   Универсальная загрузка данных
+================================ */
+function loadChartData(type, period) {
+    fetch(`/api/${type}?period=${period}`)
+        .then(r => r.json())
+        .then(d => {
+            if (type === 'revenue') {
+                revenueChart.data.labels = d.labels;
+                revenueChart.data.datasets[0].data = d.values;
+                revenueChart.update();
+            }
+
+            if (type === 'shipment-volume') {
+                shipmentVolumeChart.data.labels = d.labels;
+                shipmentVolumeChart.data.datasets[0].data = d.values;
+                shipmentVolumeChart.update();
+            }
+        });
+}
+
+/* ===============================
+   Выручка
+================================ */
+fetch('/api/revenue?period=month')
+.then(r => r.json())
+.then(d => {
+    revenueChart = new Chart(
+        document.getElementById('revenueChart'),
+        {
+            type: 'bar',
+            data: {
+                labels: d.labels,
+                datasets: [{
+                    label: 'Выручка (₽)',
+                    data: d.values,
+                    backgroundColor: GREEN_LIGHT,
+                    borderColor: GREEN,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false }},
+                scales: { y: { beginAtZero: true }}
+            }
+        }
+    );
 });
 
-// Склад по породам
-fetch('/api/stock-by-species').then(r=>r.json()).then(d=>{
-    new Chart(document.getElementById('speciesChart'),{
-        type:'doughnut',
-        data:{labels:d.labels, datasets:[{
-            data:d.values, backgroundColor: PALETTE.slice(0,d.labels.length)
-        }]},
-        options:{responsive:true, plugins:{legend:{position:'bottom'}}}
-    });
+/* ===============================
+   Объём отправок
+================================ */
+fetch('/api/shipment-volume?period=month')
+.then(r => r.json())
+.then(d => {
+    shipmentVolumeChart = new Chart(
+        document.getElementById('shipmentVolumeChart'),
+        {
+            type: 'line',
+            data: {
+                labels: d.labels,
+                datasets: [{
+                    label: 'Объём (м³)',
+                    data: d.values,
+                    borderColor: GREEN,
+                    backgroundColor: GREEN_LIGHT,
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false }},
+                scales: { y: { beginAtZero: true }}
+            }
+        }
+    );
 });
 
-// Склад по ширинам
-fetch('/api/stock-by-width').then(r=>r.json()).then(d=>{
-    new Chart(document.getElementById('widthChart'),{
-        type:'bar',
-        data:{labels:d.labels, datasets:[{
-            label:'Объём (м³)', data:d.values,
-            backgroundColor: '#5B8C5A', borderColor: GREEN, borderWidth:1
-        }]},
-        options:{responsive:true, indexAxis:'y',
-                 plugins:{legend:{display:false}},
-                 scales:{x:{beginAtZero:true}}}
-    });
+/* ===============================
+   Пачки по ширинам
+   (количество + объём)
+================================ */
+fetch('/api/stock-by-width')
+.then(r => r.json())
+.then(d => {
+    widthChart = new Chart(
+        document.getElementById('widthChart'),
+        {
+            data: {
+                labels: d.labels,
+                datasets: [
+                    {
+                        type: 'bar',
+                        label: 'Количество пачек',
+                        data: d.counts,
+                        backgroundColor: PALETTE,
+                        yAxisID: 'y'
+                    },
+                    {
+                        type: 'line',
+                        label: 'Объём (м³)',
+                        data: d.volumes,
+                        borderColor: GREEN,
+                        backgroundColor: GREEN_LIGHT,
+                        tension: 0.3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                scales: {
+                    y: {
+                        position: 'left',
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Количество'
+                        }
+                    },
+                    y1: {
+                        position: 'right',
+                        beginAtZero: true,
+                        grid: { drawOnChartArea: false },
+                        title: {
+                            display: true,
+                            text: 'м³'
+                        }
+                    }
+                }
+            }
+        }
+    );
+});
+
+/* ===============================
+   Обработчики выбора периода
+================================ */
+document.getElementById('revenuePeriod')
+?.addEventListener('change', e => {
+    loadChartData('revenue', e.target.value);
+});
+
+document.getElementById('volumePeriod')
+?.addEventListener('change', e => {
+    loadChartData('shipment-volume', e.target.value);
 });
 </script>
 {% endblock %}

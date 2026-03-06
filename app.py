@@ -31,6 +31,9 @@ login_manager.login_view = "login"
 login_manager.login_message = "Пожалуйста, войдите в систему."
 login_manager.login_message_category = "warning"
 
+pl = 630
+k_sh = 0.92
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -115,7 +118,7 @@ def dashboard():
     now = datetime.now(UTC)
 
     stock_packs = WoodPack.query.filter_by(status="на_складе").all()
-    total_stock_volume = round(sum(p.volume for p in stock_packs), 2)
+    total_stock_volume = round(sum(p.volume_nominal_for_tam for p in stock_packs), 2)
     total_stock_packs = len(stock_packs)
 
     active_bookings = Booking.query.filter_by(status="активная").count()
@@ -123,21 +126,37 @@ def dashboard():
 
     # выручка за текущий месяц
     month_revenue = (
-        db.session.query(func.coalesce(func.sum(Shipment.total_price), 0))
+        db.session.query(
+            func.coalesce(
+                func.sum(Booking.price_per_m3 * Booking.total_volume_nominal_for_tam),
+                0
+            )
+        )
+        .join(Shipment, Shipment.booking_id == Booking.id)
         .filter(
             extract("year", Shipment.shipped_at) == now.year,
-            extract("month", Shipment.shipped_at) == now.month,
+            extract("month", Shipment.shipped_at) == now.month
         )
         .scalar()
     )
 
     # выручка за год
     year_revenue = (
-        db.session.query(func.coalesce(func.sum(Shipment.total_price), 0))
-        .filter(extract("year", Shipment.shipped_at) == now.year)
+        db.session.query(
+            func.coalesce(
+                func.sum(Booking.price_per_m3 * Booking.total_volume_nominal_for_tam),
+                0
+            )
+        )
+        .join(Shipment, Shipment.booking_id == Booking.id)
+        .filter(
+            extract("year", Shipment.shipped_at) == now.year
+        )
         .scalar()
     )
 
+    # отправок за месяц
+    ready_shipment = db.session.query(Shipment).filter(extract("year", Shipment.shipped_at) == now.year).count()
     # последние 5 отправок
     recent_shipments = (
         Shipment.query.order_by(Shipment.shipped_at.desc()).limit(5).all()
@@ -147,6 +166,7 @@ def dashboard():
         "dashboard.html",
         total_stock_volume=total_stock_volume,
         total_stock_packs=total_stock_packs,
+        ready_shipment= ready_shipment,
         active_bookings=active_bookings,
         total_shipments=total_shipments,
         month_revenue=round(month_revenue, 2),
@@ -164,7 +184,7 @@ def api_revenue_chart():
     data = (
         db.session.query(
             extract("month", Shipment.shipped_at).label("m"),
-            func.coalesce(func.sum(Shipment.total_price), 0).label("total"),
+            func.coalesce(func.sum(Booking.total_price), 0).label("total"),
         )
         .filter(extract("year", Shipment.shipped_at) == year)
         .group_by("m")
@@ -186,15 +206,15 @@ def api_stock_by_width():
     """Объём на складе по ширинам."""
     data = (
         db.session.query(
-            WoodPack.width,
-            func.sum(WoodPack.volume).label("vol"),
+            WoodPack.width_fact_for_pok,
+            func.sum(WoodPack.volume_fact_for_tam).label("vol"),
         )
         .filter(WoodPack.status == "на_складе")
-        .group_by(WoodPack.width)
-        .order_by(WoodPack.width)
+        .group_by(WoodPack.width_fact_for_pok)
+        .order_by(WoodPack.width_fact_for_pok)
         .all()
     )
-    labels = [f"{int(r.width)} мм" for r in data]
+    labels = [f"{int(r.width_fact_for_pok)} мм" for r in data]
     values = [round(float(r.vol), 4) for r in data]
     return jsonify(labels=labels, values=values)
 
@@ -284,11 +304,11 @@ def add_pack():
 
             width_fact_for_tam = float(request.form["width_fact_for_tam"])
             width_fact_for_pok = float(request.form["width_fact_for_pok"])
-            # width_nominal_for_pok = width_fact_for_pok - 1
+            width_nominal_for_pok = width_fact_for_pok - 1
 
             thickness_fact_for_tam = float(request.form["thickness_fact_for_tam"])
             thickness_fact_for_pok = float(request.form["thickness_fact_for_pok"])
-            # thickness_nominal_for_pok = thickness_fact_for_pok - 3
+            thickness_nominal_for_pok = thickness_fact_for_pok - 3
 
             length_pack = float(request.form["length_pack"])
             length_fact = float(request.form["length_fact"])
@@ -299,7 +319,18 @@ def add_pack():
             quantity_in_layer = int(request.form["quantity_in_layer"])
             #quantity = quantity_layers * quantity_in_layer
 
-            volume_fact_for_pok = round(calc_volume(width_fact_for_pok, thickness_fact_for_pok, length_fact, quantity*0.92),7)
+            volume_nominal_for_pok = round(
+                width_nominal_for_pok * thickness_nominal_for_pok * length_nominal * quantity * (10 ** (-9)), 6)  # м³
+            volume_fact_for_pok = round(
+                width_fact_for_pok * thickness_fact_for_pok * length_fact * quantity * (10 ** (-9)), 6)  # м³
+            volume_fact_for_tam = round(
+                width_fact_for_tam * thickness_fact_for_tam * length_pack * (10 ** (-9)), 6)  # м³
+            volume_nominal_for_tam = round(volume_fact_for_tam * k_sh, 6)
+
+            weight_nominal_for_pok = volume_nominal_for_pok * pl
+            weight_fact_for_pok = volume_fact_for_pok * pl
+            weight_nominal_for_tam = volume_nominal_for_tam * pl
+            weight_fact_for_tam = volume_fact_for_tam * pl
 
             pack = WoodPack(
                 number_pac=number_pac,
@@ -307,9 +338,11 @@ def add_pack():
 
                 width_fact_for_tam=width_fact_for_tam,
                 width_fact_for_pok=width_fact_for_pok,
+                width_nominal_for_pok=width_nominal_for_pok,
 
                 thickness_fact_for_tam=thickness_fact_for_tam,
                 thickness_fact_for_pok=thickness_fact_for_pok,
+                thickness_nominal_for_pok=thickness_nominal_for_pok,
 
                 length_pack=length_pack,
                 length_fact=length_fact,
@@ -319,9 +352,22 @@ def add_pack():
                 quantity_in_layer=quantity_in_layer,
                 quantity=quantity,
 
+                volume_nominal_for_pok=volume_nominal_for_pok,
+                volume_fact_for_pok=volume_fact_for_pok,
+                volume_fact_for_tam=volume_fact_for_tam,
+                volume_nominal_for_tam=volume_nominal_for_tam,
+
+                weight_nominal_for_pok=weight_nominal_for_pok,
+                weight_fact_for_pok=weight_fact_for_pok,
+                weight_nominal_for_tam=weight_nominal_for_tam,
+                weight_fact_for_tam=weight_fact_for_tam,
+
                 notes=request.form.get("notes", "").strip(),
                 created_by=current_user.id,
             )
+
+
+
             db.session.add(pack)
             db.session.commit()
             flash(f"Пачка #{pack.number_pac} добавлена на склад ({volume_fact_for_pok} м³).", "success")
@@ -350,11 +396,11 @@ def edit_pack(pack_id):
 
             pack.width_fact_for_tam = float(request.form["width_fact_for_tam"])
             pack.width_fact_for_pok = float(request.form["width_fact_for_pok"])
-            # width_nominal_for_pok = width_fact_for_pok - 1
+            pack.width_nominal_for_pok = pack.width_fact_for_pok - 1
 
-            pack.thickness_fact_for_tam = float(request.form[" thickness_fact_for_tam"])
-            pack.thickness_fact_for_pok = float(request.form[" thickness_fact_for_pok"])
-            # thickness_nominal_for_pok = thickness_fact_for_pok - 3
+            pack.thickness_fact_for_tam = float(request.form["thickness_fact_for_tam"])
+            pack.thickness_fact_for_pok = float(request.form["thickness_fact_for_pok"])
+            pack.thickness_nominal_for_pok = pack.thickness_fact_for_pok - 3
 
             pack.length_fact = float(request.form["length_fact"])
             pack.length_nominal = float(request.form["length_nominal"])
@@ -364,8 +410,21 @@ def edit_pack(pack_id):
             pack.quantity_in_layer = int(request.form["quantity_in_layer"])
             #quantity = pack.quantity_layers * pack.quantity_in_layer
 
+            pack.notes = request.form.get("notes", "")
+
+            pack.volume_nominal_for_pok = round(
+                pack.width_nominal_for_pok * pack.thickness_nominal_for_pok * pack.length_nominal * pack.quantity * (10 ** (-9)), 6)  # м³
             pack.volume_fact_for_pok = round(
-                calc_volume(pack.width_fact_for_pok, pack.thickness_fact_for_pok, pack.length_fact, quantity * 0.92), 7)
+                pack.width_fact_for_pok * pack.thickness_fact_for_pok * pack.length_fact * pack.quantity * (10 ** (-9)), 6)  # м³
+            pack.volume_fact_for_tam = round(
+                pack.width_fact_for_tam * pack.thickness_fact_for_tam * pack.length_pack * (10 ** (-9)), 6)  # м³
+            pack.volume_nominal_for_tam = round(pack.volume_fact_for_tam * k_sh, 6)
+
+            pack.weight_nominal_for_pok = pack.volume_nominal_for_pok * pl
+            pack.weight_fact_for_pok = pack.volume_fact_for_pok * pl
+            pack.weight_nominal_for_tam = pack.volume_nominal_for_tam * pl
+            pack.weight_fact_for_tam = pack.volume_fact_for_tam * pl
+
 
             db.session.commit()
             flash("Пачка обновлена.", "success")
@@ -463,7 +522,20 @@ def add_packs_to_booking(booking_id):
         if pack and pack.status == "на_складе":
             pack.status = "забронирована"
             pack.booking_id = booking.id
+
+            booking.total_volume_nominal_for_pok += pack.volume_nominal_for_pok
+            booking.total_volume_fact_for_pok += pack.volume_fact_for_pok
+            booking.total_volume_nominal_for_tam += pack.volume_nominal_for_tam
+            booking.total_volume_fact_for_tam += pack.volume_fact_for_tam
             count += 1
+
+    booking.total_weight_nominal_for_pok = booking.total_volume_nominal_for_pok * pl
+    booking.total_weight_fact_for_pok = booking.total_volume_fact_for_pok * pl
+    booking.total_weight_nominal_for_tam = booking.total_volume_nominal_for_tam * pl
+    booking.total_weight_fact_for_tam = booking.total_volume_fact_for_tam * pl
+
+    booking.total_price = booking.price_per_m3 * booking.total_volume_nominal_for_tam
+    booking.pack_count = count
     db.session.commit()
     flash(f"Добавлено пачек: {count}.", "success")
     return redirect(url_for("booking_detail", booking_id=booking.id))
@@ -478,6 +550,20 @@ def remove_pack_from_booking(booking_id, pack_id):
     if booking and pack and booking.status == "активная" and pack.booking_id == booking.id:
         pack.status = "на_складе"
         pack.booking_id = None
+
+        booking.total_volume_nominal_for_pok -= pack.volume_nominal_for_pok
+        booking.total_volume_fact_for_pok -= pack.volume_fact_for_pok
+        booking.total_volume_nominal_for_tam -= pack.volume_nominal_for_tam
+        booking.total_volume_fact_for_tam -= pack.volume_fact_for_tam
+        booking.pack_count -= 1
+
+        booking.total_weight_nominal_for_pok = booking.total_volume_nominal_for_pok * pl
+        booking.total_weight_fact_for_pok = booking.total_volume_fact_for_pok * pl
+        booking.total_weight_nominal_for_tam = booking.total_volume_nominal_for_tam * pl
+        booking.total_weight_fact_for_tam = booking.total_volume_fact_for_tam * pl
+
+        booking.total_price = booking.price_per_m3 * booking.total_volume_nominal_for_tam
+
         db.session.commit()
         flash("Пачка убрана из бронирования.", "success")
     else:

@@ -440,12 +440,13 @@ def add_pack():
     """
     if request.method == "POST":
         try:
-            number_pac = request.form.get("number_pac","")
+            # por_number_pac = request.form.get("por_number_pac","")
+            # type_pac = request.form.get("type_pac","")
             grade = request.form.get("grade","")
 
             width_fact_for_tam = float(request.form["width_fact_for_tam"])
             width_fact_for_pok = float(request.form["width_fact_for_pok"])
-            width_nominal_for_pok = width_fact_for_pok - 1
+            width_nominal_for_pok = width_fact_for_pok - 3
 
             thickness_fact_for_tam = float(request.form["thickness_fact_for_tam"])
             thickness_fact_for_pok = float(request.form["thickness_fact_for_pok"])
@@ -460,6 +461,7 @@ def add_pack():
             quantity_in_layer = int(request.form["quantity_in_layer"])
             #quantity = quantity_layers * quantity_in_layer
 
+            number_pac = request.form.get("number_pac","")
             volume_nominal_for_pok = round(
                 width_nominal_for_pok * thickness_nominal_for_pok * length_nominal * quantity * (10 ** (-9)), 6)  # м³
             volume_fact_for_pok = round(
@@ -532,7 +534,6 @@ def edit_pack(pack_id):
 
     if request.method == "POST":
         try:
-            pack.number_pac = request.form.get("number_pac", "")
             pack.grade = request.form.get("grade", "")
 
             pack.width_fact_for_tam = float(request.form["width_fact_for_tam"])
@@ -553,6 +554,7 @@ def edit_pack(pack_id):
 
             pack.notes = request.form.get("notes", "")
 
+            pack.number_pac = request.form.get("number_pac", "")
             pack.volume_nominal_for_pok = round(
                 pack.width_nominal_for_pok * pack.thickness_nominal_for_pok * pack.length_nominal * pack.quantity * (10 ** (-9)), 6)  # м³
             pack.volume_fact_for_pok = round(

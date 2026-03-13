@@ -44,8 +44,9 @@ class WoodPack(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     # ---
-    number_pac = db.Column(db.String(16), default="", nullable=False)  # номер пачки
+    number_pac = db.Column(db.String(16), default="", nullable=True)  # номер пачки
     grade = db.Column(db.String(5), default="")  # сорт
+
     #--- ширина
     width_fact_for_tam = db.Column(db.Float, nullable=False)  # мм ширина пачки
     width_fact_for_pok = db.Column(db.Float, nullable=True)  # мм ширина доски

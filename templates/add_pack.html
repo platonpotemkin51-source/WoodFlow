@@ -11,13 +11,18 @@
 <div class="row g-3 mb-5">
 
     <div class="col-md-3">
-        <label class="form-label">Номер пачки</label>
-        <input type="text" name="number_pac" id="number_pac" class="form-control" required>
+        <label class="form-label">Порядковый номер пачки</label>
+        <input type="text" name="por_number_pac" id="por_number_pac" class="form-control" required>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Тип доски (L/S)</label>
+        <input type="text" name="type_pac" id="type_pac" class="form-control" required>
     </div>
 
     <div class="col-md-2">
         <label class="form-label">Сорт</label>
-        <select name="grade" class="form-select">
+        <select name="grade" id="grade" class="form-select">
             <option>AA</option>
             <option>AB</option>
             <option>AC</option>
@@ -122,6 +127,11 @@
 <!-- ================= НИЖНИЕ АВТОРАСЧЁТЫ ================= -->
 <div class="row g-4 mb-4">
 
+    <div class="col-md-2">
+        <label class="form-label">Номер пачки</label>
+        <input type="text" name="number_pac" id="number_pac" class="form-control" required>
+    </div>
+
     <div class="col-md-4">
         <label class="form-label text-success">Вес пачки (кг)</label>
         <input type="text" id="weightDisplay"
@@ -172,14 +182,21 @@ function calculateAll(){
 
     // ===== данные покупателя =====
     const wft = parseFloat(document.getElementById('width_fact_for_tam').value) || 0;
+    const wfp = parseFloat(document.getElementById('width_fact_for_pok').value) || 0;
     const tft = parseFloat(document.getElementById('thickness_fact_for_tam').value) || 0;
     const l_pack = parseFloat(document.getElementById('length_pack').value) || 0;
+    const type_pac =  document.getElementById('type_pac').value || '';
+    const por_number_pac = parseFloat(document.getElementById('por_number_pac').value) || 0;
+    const grade =  document.getElementById('grade').value || '';
 
     const q1 = parseInt(document.getElementById('quantity_layers').value) || 0;
     const q2 = parseInt(document.getElementById('quantity_in_layer').value) || 0;
 
     const totalQty = q1 * q2;
     document.getElementById('quantity').value = totalQty > 0 ? totalQty : '';
+
+    const num_pack = `${wfp}${type_pac}00${por_number_pac}${grade}`;
+    document.getElementById('number_pac').value = num_pack ;
 
     // ===== фактический объём для покупателя =====
     const volumeFact = (wft/1000)*(tft/1000)*(l_pack/1000);

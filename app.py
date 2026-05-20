@@ -47,7 +47,8 @@ def load_user(user_id):
 # ──────────────────────────────────────────────
 def calc_volume(width_mm, thickness_mm, length_m, qty):
     """Объём пачки в м³."""
-    return round(width_mm * thickness_mm * length_m * (10**(-9)) * qty, 4)
+    return round(width_mm * thickness_mm * length_m * (10 ** (-9)) * qty, 4)
+
 
 def generate_booking_number():
     """генерирует название брони"""
@@ -171,7 +172,7 @@ def dashboard():
         "dashboard.html",
         total_stock_volume=total_stock_volume,
         total_stock_packs=total_stock_packs,
-        ready_shipment= ready_shipment,
+        ready_shipment=ready_shipment,
         active_bookings=active_bookings,
         total_shipments=total_shipments,
         month_revenue=round(month_revenue, 2),
@@ -250,8 +251,8 @@ def api_revenue():
         )
 
         months = [
-            "Янв","Фев","Мар","Апр","Май","Июн",
-            "Июл","Авг","Сен","Окт","Ноя","Дек"
+            "Янв", "Фев", "Мар", "Апр", "Май", "Июн",
+            "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"
         ]
         values = [0] * 12
 
@@ -261,6 +262,7 @@ def api_revenue():
         labels = months
 
     return jsonify(labels=labels, values=values)
+
 
 @app.route("/api/shipment-volume")
 @login_required
@@ -322,8 +324,8 @@ def api_shipment_volume():
         )
 
         months = [
-            "Янв","Фев","Мар","Апр","Май","Июн",
-            "Июл","Авг","Сен","Окт","Ноя","Дек"
+            "Янв", "Фев", "Мар", "Апр", "Май", "Июн",
+            "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"
         ]
         values = [0] * 12
 
@@ -355,9 +357,9 @@ def api_stock_by_width():
     volumes = [round(float(r.vol), 4) for r in data]
     return jsonify(labels=labels, counts=counts, volumes=volumes)
 
+
 @app.route("/api/last-shipments")
 def last_shipments():
-
     shipments = (
         Shipment.query
         .order_by(Shipment.shipped_at.desc())
@@ -377,6 +379,7 @@ def last_shipments():
         })
 
     return jsonify(data)
+
 
 # ══════════════════════════════════════════════
 #  STOCK (СКЛАД)
@@ -442,7 +445,7 @@ def add_pack():
         try:
             # por_number_pac = request.form.get("por_number_pac","")
             # type_pac = request.form.get("type_pac","")
-            grade = request.form.get("grade","")
+            grade = request.form.get("grade", "")
 
             width_fact_for_tam = float(request.form["width_fact_for_tam"])
             width_fact_for_pok = float(request.form["width_fact_for_pok"])
@@ -459,9 +462,9 @@ def add_pack():
             quantity = int(request.form["quantity"])
             quantity_layers = int(request.form["quantity_layers"])
             quantity_in_layer = int(request.form["quantity_in_layer"])
-            #quantity = quantity_layers * quantity_in_layer
+            # quantity = quantity_layers * quantity_in_layer
 
-            number_pac = request.form.get("number_pac","")
+            number_pac = request.form.get("number_pac", "")
             volume_nominal_for_pok = round(
                 width_nominal_for_pok * thickness_nominal_for_pok * length_nominal * quantity * (10 ** (-9)), 6)  # м³
             volume_fact_for_pok = round(
@@ -509,8 +512,6 @@ def add_pack():
                 created_by=current_user.id,
             )
 
-
-
             db.session.add(pack)
             db.session.commit()
             flash(f"Пачка #{pack.number_pac} добавлена на склад ({volume_fact_for_pok} м³).", "success")
@@ -550,15 +551,17 @@ def edit_pack(pack_id):
             pack.quantity = int(request.form["quantity"])
             pack.quantity_layers = int(request.form["quantity_layers"])
             pack.quantity_in_layer = int(request.form["quantity_in_layer"])
-            #quantity = pack.quantity_layers * pack.quantity_in_layer
+            # quantity = pack.quantity_layers * pack.quantity_in_layer
 
             pack.notes = request.form.get("notes", "")
 
             pack.number_pac = request.form.get("number_pac", "")
             pack.volume_nominal_for_pok = round(
-                pack.width_nominal_for_pok * pack.thickness_nominal_for_pok * pack.length_nominal * pack.quantity * (10 ** (-9)), 6)  # м³
+                pack.width_nominal_for_pok * pack.thickness_nominal_for_pok * pack.length_nominal * pack.quantity * (
+                            10 ** (-9)), 6)  # м³
             pack.volume_fact_for_pok = round(
-                pack.width_fact_for_pok * pack.thickness_fact_for_pok * pack.length_fact * pack.quantity * (10 ** (-9)), 6)  # м³
+                pack.width_fact_for_pok * pack.thickness_fact_for_pok * pack.length_fact * pack.quantity * (10 ** (-9)),
+                6)  # м³
             pack.volume_fact_for_tam = round(
                 pack.width_fact_for_tam * pack.thickness_fact_for_tam * pack.length_pack * (10 ** (-9)), 6)  # м³
             pack.volume_nominal_for_tam = round(pack.volume_fact_for_tam * k_sh, 6)
@@ -567,7 +570,6 @@ def edit_pack(pack_id):
             pack.weight_fact_for_pok = pack.volume_fact_for_pok * pl
             pack.weight_nominal_for_tam = pack.volume_nominal_for_tam * pl
             pack.weight_fact_for_tam = pack.volume_fact_for_tam * pl
-
 
             db.session.commit()
             flash("Пачка обновлена.", "success")
@@ -617,8 +619,8 @@ def create_booking():
             number=generate_booking_number(),
             company_name=request.form.get("company_name", "").strip(),
             adres=request.form.get("adres", "").strip(),
-            price_per_m3 = float(request.form["price_per_m3"]),
-            contract = request.form.get("contract", "").strip(),
+            price_per_m3=float(request.form["price_per_m3"]),
+            contract=request.form.get("contract", "").strip(),
             notes=request.form.get("notes", "").strip(),
             created_by=current_user.id,
         )
@@ -744,7 +746,9 @@ def ship_booking(booking_id):
         booking.status = "отправлена"
 
         db.session.commit()
-        flash(f"Отправка на {booking.pack_count} пачек оформлена! Объём фактический для таможни: {booking.total_price} м³ ", "success")
+        flash(
+            f"Отправка на {booking.pack_count} пачек оформлена! Объём фактический для таможни: {booking.total_price} м³ ",
+            "success")
         return redirect(url_for("shipment_detail", shipment_id=shipment.id))
 
     return render_template("ship_booking.html", booking=booking)

@@ -3,217 +3,217 @@
 {% block content %}
 
 <div class="container">
-<form method="post">
-<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-<!-- ================= ДЛЯ ОТПРАВКИ ================= -->
-<h3 class="mb-3">Для отправки</h3>
-<div class="row g-3 mb-5">
+        <!-- ================= ДЛЯ ОТПРАВКИ ================= -->
+        <h3 class="mb-3">Для отправки</h3>
+        <div class="row g-3 mb-5">
 
-    <div class="col-md-3">
-        <label class="form-label">Порядковый номер пачки</label>
-        <input type="text" name="por_number_pac" id="por_number_pac" class="form-control" required>
-    </div>
+            <div class="col-md-3">
+                <label class="form-label">Порядковый номер пачки</label>
+                <input type="text" name="por_number_pac" id="por_number_pac" class="form-control" required>
+            </div>
 
-    <div class="col-md-3">
-        <label class="form-label">Тип доски (L/S)</label>
-        <input type="text" name="type_pac" id="type_pac" class="form-control" required>
-    </div>
+            <div class="col-md-3">
+                <label class="form-label">Тип доски (L/S)</label>
+                <input type="text" name="type_pac" id="type_pac" class="form-control" required>
+            </div>
 
-    <div class="col-md-2">
-        <label class="form-label">Сорт</label>
-        <select name="grade" id="grade" class="form-select">
-            <option>AA</option>
-            <option>AB</option>
-            <option>AC</option>
-            <option>BB</option>
-            <option>BC</option>
-            <option>CC</option>
-        </select>
-    </div>
+            <div class="col-md-2">
+                <label class="form-label">Сорт</label>
+                <select name="grade" id="grade" class="form-select">
+                    <option>AA</option>
+                    <option>AB</option>
+                    <option>AC</option>
+                    <option>BB</option>
+                    <option>BC</option>
+                    <option>CC</option>
+                </select>
+            </div>
 
-    <div class="col-md-2">
-        <label class="form-label">Ширина пачки факт. (мм)</label>
-        <input type="number" name="width_fact_for_tam" id="width_fact_for_tam"
-               class="form-control calc" required step="any" min="1" list="width2List">
-        <datalist id="width2List">
-            <option value="710">
-            <option value="720">
-            <option value="730">
-            <option value="1200">
-        </datalist>
-    </div>
+            <div class="col-md-2">
+                <label class="form-label">Ширина пачки факт. (мм)</label>
+                <input type="number" name="width_fact_for_tam" id="width_fact_for_tam"
+                       class="form-control calc" required step="any" min="1" list="width2List">
+                <datalist id="width2List">
+                    <option value="710">
+                    <option value="720">
+                    <option value="730">
+                    <option value="1200">
+                </datalist>
+            </div>
 
-    <div class="col-md-2">
-        <label class="form-label">Высота пачки факт. (мм)</label>
-        <input type="number" name="thickness_fact_for_tam" id="thickness_fact_for_tam"
-               class="form-control calc" required step="any" min="1" list="thicknessList">
-        <datalist id="thicknessList">
-            <option value="1040">
-            <option value="1050">
-            <option value="1060">
-            <option value="1070">
-            <option value="1080">
-            <option value="1090">
-            <option value="1100">
-        </datalist>
-    </div>
+            <div class="col-md-2">
+                <label class="form-label">Высота пачки факт. (мм)</label>
+                <input type="number" name="thickness_fact_for_tam" id="thickness_fact_for_tam"
+                       class="form-control calc" required step="any" min="1" list="thicknessList">
+                <datalist id="thicknessList">
+                    <option value="1040">
+                    <option value="1050">
+                    <option value="1060">
+                    <option value="1070">
+                    <option value="1080">
+                    <option value="1090">
+                    <option value="1100">
+                </datalist>
+            </div>
 
-    <div class="col-md-3">
-        <label class="form-label">Длина пачки факт. (мм)</label>
-        <input type="number" name="length_pack" id="length_pack"
-               class="form-control calc" required step="any" min="1" value="2800">
-    </div>
+            <div class="col-md-3">
+                <label class="form-label">Длина пачки факт. (мм)</label>
+                <input type="number" name="length_pack" id="length_pack"
+                       class="form-control calc" required step="any" min="1" value="2800">
+            </div>
 
-</div>
-
-
-<!-- ================= ДЛЯ ПОКУПАТЕЛЯ ================= -->
-<h3 class="mb-3">Для покупателя</h3>
-<div class="row g-3 mb-4">
-
-    <div class="col-md-2">
-        <label class="form-label">Ширина доски факт. (мм)</label>
-        <input type="number" name="width_fact_for_pok" id="width_fact_for_pok"
-               class="form-control calc" required step="any" min="1" list="widthList">
-        <datalist id="widthList">
-            <option value="22">
-            <option value="32">
-            <option value="41">
-            <option value="55">
-            <option value="67">
-            <option value="79">
-        </datalist>
-    </div>
-
-    <div class="col-md-2">
-        <label class="form-label">Толщина доски факт. (мм)</label>
-        <input type="number" name="thickness_fact_for_pok" id="thickness_fact_for_pok"
-               class="form-control calc" required step="any" min="1" value="22">
-    </div>
-
-    <div class="col-md-2">
-        <label class="form-label">Длина доски номин. (мм)</label>
-        <input type="number" name="length_nominal" id="length_nominal"
-               class="form-control calc" required step="any" min="1" value="2750">
-    </div>
-
-    <div class="col-md-2">
-        <label class="form-label">Длина доски факт. (мм)</label>
-        <input type="number" name="length_fact" id="length_fact"
-               class="form-control calc" required step="any" min="1" value="2800">
-    </div>
-
-    <div class="col-md-2">
-        <label class="form-label">Кол-во рядов</label>
-        <input type="number" name="quantity_layers" id="quantity_layers"
-               class="form-control calc" required min="1">
-    </div>
-
-    <div class="col-md-2">
-        <label class="form-label">Кол-во столбцов</label>
-        <input type="number" name="quantity_in_layer" id="quantity_in_layer"
-               class="form-control calc" required min="1">
-    </div>
-
-    <div class="col-md-2">
-        <label class="form-label">Общее кол-во</label>
-        <input type="text" name="quantity" id="quantity" class="form-control" required>
-    </div>
-
-</div>
+        </div>
 
 
-<!-- ================= НИЖНИЕ АВТОРАСЧЁТЫ ================= -->
-<div class="row g-4 mb-4">
+        <!-- ================= ДЛЯ ПОКУПАТЕЛЯ ================= -->
+        <h3 class="mb-3">Для покупателя</h3>
+        <div class="row g-3 mb-4">
 
-    <div class="col-md-2">
-        <label class="form-label">Номер пачки</label>
-        <input type="text" name="number_pac" id="number_pac" class="form-control" required>
-    </div>
+            <div class="col-md-2">
+                <label class="form-label">Ширина доски факт. (мм)</label>
+                <input type="number" name="width_fact_for_pok" id="width_fact_for_pok"
+                       class="form-control calc" required step="any" min="1" list="widthList">
+                <datalist id="widthList">
+                    <option value="22">
+                    <option value="32">
+                    <option value="41">
+                    <option value="55">
+                    <option value="67">
+                    <option value="79">
+                </datalist>
+            </div>
 
-    <div class="col-md-4">
-        <label class="form-label text-success">Вес пачки (кг)</label>
-        <input type="text" id="weightDisplay"
-               class="form-control border-success" readonly>
-    </div>
+            <div class="col-md-2">
+                <label class="form-label">Толщина доски факт. (мм)</label>
+                <input type="number" name="thickness_fact_for_pok" id="thickness_fact_for_pok"
+                       class="form-control calc" required step="any" min="1" value="22">
+            </div>
 
-    <div class="col-md-4">
-        <label class="form-label text-success">Объём номинальный (м³)</label>
-        <input type="text" id="volumeNominalDisplay"
-               class="form-control border-success" readonly>
-    </div>
+            <div class="col-md-2">
+                <label class="form-label">Длина доски номин. (мм)</label>
+                <input type="number" name="length_nominal" id="length_nominal"
+                       class="form-control calc" required step="any" min="1" value="2750">
+            </div>
 
-    <div class="col-md-4">
-        <label class="form-label text-success">Объём фактический (м³)</label>
-        <input type="text" id="volumeDisplay"
-               class="form-control border-success" readonly>
-    </div>
+            <div class="col-md-2">
+                <label class="form-label">Длина доски факт. (мм)</label>
+                <input type="number" name="length_fact" id="length_fact"
+                       class="form-control calc" required step="any" min="1" value="2800">
+            </div>
 
-</div>
+            <div class="col-md-2">
+                <label class="form-label">Кол-во рядов</label>
+                <input type="number" name="quantity_layers" id="quantity_layers"
+                       class="form-control calc" required min="1">
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Кол-во столбцов</label>
+                <input type="number" name="quantity_in_layer" id="quantity_in_layer"
+                       class="form-control calc" required min="1">
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label">Общее кол-во</label>
+                <input type="text" name="quantity" id="quantity" class="form-control" required>
+            </div>
+
+        </div>
 
 
-<div class="mb-4">
-    <label class="form-label">Примечания</label>
-    <textarea name="notes"
-              class="form-control"
-              rows="2"></textarea>
-</div>
+        <!-- ================= НИЖНИЕ АВТОРАСЧЁТЫ ================= -->
+        <div class="row g-4 mb-4">
 
-<button type="submit" class="btn btn-success">
-    Добавить на склад
-</button>
+            <div class="col-md-2">
+                <label class="form-label">Номер пачки</label>
+                <input type="text" name="number_pac" id="number_pac" class="form-control" required>
+            </div>
 
-<a href="{{ url_for('stock') }}"
-   class="btn btn-outline-secondary ms-2">Отмена</a>
+            <div class="col-md-4">
+                <label class="form-label text-success">Вес пачки (кг)</label>
+                <input type="text" id="weightDisplay"
+                       class="form-control border-success" readonly>
+            </div>
 
-</form>
+            <div class="col-md-4">
+                <label class="form-label text-success">Объём номинальный (м³)</label>
+                <input type="text" id="volumeNominalDisplay"
+                       class="form-control border-success" readonly>
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label text-success">Объём фактический (м³)</label>
+                <input type="text" id="volumeDisplay"
+                       class="form-control border-success" readonly>
+            </div>
+
+        </div>
+
+
+        <div class="mb-4">
+            <label class="form-label">Примечания</label>
+            <textarea name="notes"
+                      class="form-control"
+                      rows="2"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            Добавить на склад
+        </button>
+
+        <a href="{{ url_for('stock') }}"
+           class="btn btn-outline-secondary ms-2">Отмена</a>
+
+    </form>
 </div>
 
 {% endblock %}
 {% block scripts %}
 <script>
 
-document.querySelectorAll('.calc').forEach(el=>{
-    el.addEventListener('input', calculateAll);
-});
+    document.querySelectorAll('.calc').forEach(el=>{
+        el.addEventListener('input', calculateAll);
+    });
 
-function calculateAll(){
+    function calculateAll(){
 
-    // ===== данные покупателя =====
-    const wft = parseFloat(document.getElementById('width_fact_for_tam').value) || 0;
-    const wfp = parseFloat(document.getElementById('width_fact_for_pok').value) || 0;
-    const tft = parseFloat(document.getElementById('thickness_fact_for_tam').value) || 0;
-    const l_pack = parseFloat(document.getElementById('length_pack').value) || 0;
-    const type_pac =  document.getElementById('type_pac').value || '';
-    const por_number_pac = parseFloat(document.getElementById('por_number_pac').value) || 0;
-    const grade =  document.getElementById('grade').value || '';
+        // ===== данные покупателя =====
+        const wft = parseFloat(document.getElementById('width_fact_for_tam').value) || 0;
+        const wfp = parseFloat(document.getElementById('width_fact_for_pok').value) || 0;
+        const tft = parseFloat(document.getElementById('thickness_fact_for_tam').value) || 0;
+        const l_pack = parseFloat(document.getElementById('length_pack').value) || 0;
+        const type_pac =  document.getElementById('type_pac').value || '';
+        const por_number_pac = parseFloat(document.getElementById('por_number_pac').value) || 0;
+        const grade =  document.getElementById('grade').value || '';
 
-    const q1 = parseInt(document.getElementById('quantity_layers').value) || 0;
-    const q2 = parseInt(document.getElementById('quantity_in_layer').value) || 0;
+        const q1 = parseInt(document.getElementById('quantity_layers').value) || 0;
+        const q2 = parseInt(document.getElementById('quantity_in_layer').value) || 0;
 
-    const totalQty = q1 * q2;
-    document.getElementById('quantity').value = totalQty > 0 ? totalQty : '';
+        const totalQty = q1 * q2;
+        document.getElementById('quantity').value = totalQty > 0 ? totalQty : '';
 
-    const num_pack = `${wfp}${type_pac}00${por_number_pac}${grade}`;
-    document.getElementById('number_pac').value = num_pack ;
+        const num_pack = `${wfp}${type_pac}00${por_number_pac}${grade}`;
+        document.getElementById('number_pac').value = num_pack ;
 
-    // ===== фактический объём для покупателя =====
-    const volumeFact = (wft/1000)*(tft/1000)*(l_pack/1000);
-    document.getElementById('volumeDisplay').value =
-        volumeFact > 0 ? volumeFact.toFixed(4) + ' м³' : '';
+        // ===== фактический объём для покупателя =====
+        const volumeFact = (wft/1000)*(tft/1000)*(l_pack/1000);
+        document.getElementById('volumeDisplay').value =
+            volumeFact > 0 ? volumeFact.toFixed(4) + ' м³' : '';
 
-    // ===== номинальный объём (по пачке) =====
-    const volumeNominal = volumeFact * 0.92;
-    document.getElementById('volumeNominalDisplay').value =
-        volumeNominal > 0 ? volumeNominal.toFixed(4) + ' м³' : '';
+        // ===== номинальный объём (по пачке) =====
+        const volumeNominal = volumeFact * 0.92;
+        document.getElementById('volumeNominalDisplay').value =
+            volumeNominal > 0 ? volumeNominal.toFixed(4) + ' м³' : '';
 
-    // ===== вес пачки (плотность 630 кг/м³) факт для таможни =====
-    const density = 630;
-    const weight = volumeNominal * density;
-    document.getElementById('weightDisplay').value =
-        weight > 0 ? weight.toFixed(1) + ' кг' : '';
-}
+        // ===== вес пачки (плотность 630 кг/м³) факт для таможни =====
+        const density = 630;
+        const weight = volumeNominal * density;
+        document.getElementById('weightDisplay').value =
+            weight > 0 ? weight.toFixed(1) + ' кг' : '';
+    }
 
 </script>
 {% endblock %}

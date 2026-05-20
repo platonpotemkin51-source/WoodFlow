@@ -4,7 +4,6 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from zoneinfo import ZoneInfo
 
-
 db = SQLAlchemy()
 
 k_sh = 0.92
@@ -47,7 +46,7 @@ class WoodPack(db.Model):
     number_pac = db.Column(db.String(16), default="", nullable=True)  # номер пачки
     grade = db.Column(db.String(5), default="")  # сорт
 
-    #--- ширина
+    # --- ширина
     width_fact_for_tam = db.Column(db.Float, nullable=False)  # мм ширина пачки
     width_fact_for_pok = db.Column(db.Float, nullable=True)  # мм ширина доски
     width_nominal_for_pok = db.Column(db.Float, nullable=True)
@@ -56,7 +55,7 @@ class WoodPack(db.Model):
     # def width_nominal_for_pok(self):
     #     return self.width_fact_for_pok - 3
 
-    #--- толщина/высота
+    # --- толщина/высота
     thickness_fact_for_tam = db.Column(db.Float, nullable=False)  # мм толщина пачки
     thickness_fact_for_pok = db.Column(db.Float, nullable=True)  # мм толщина доски
     thickness_nominal_for_pok = db.Column(db.Float, nullable=True)
@@ -65,14 +64,14 @@ class WoodPack(db.Model):
     # def thickness_nominal_for_pok(self):
     #     return self.thickness_fact_for_pok - 3
 
-    #--- длина
+    # --- длина
     length_nominal = db.Column(db.Float, nullable=True)  # мм длина доски
     length_fact = db.Column(db.Float, nullable=True)  # мм длина доски
     length_pack = db.Column(db.Float, nullable=False)  # мм длина пачки
-    #--- количества
-    quantity = db.Column(db.Integer, nullable=True) # количество
-    quantity_layers = db.Column(db.Integer, nullable=True) # количество слоёв
-    quantity_in_layer = db.Column(db.Integer, nullable=True) # количество в слою
+    # --- количества
+    quantity = db.Column(db.Integer, nullable=True)  # количество
+    quantity_layers = db.Column(db.Integer, nullable=True)  # количество слоёв
+    quantity_in_layer = db.Column(db.Integer, nullable=True)  # количество в слою
     # --- Объёмы
     volume_nominal_for_pok = db.Column(db.Float, nullable=True)
     volume_fact_for_pok = db.Column(db.Float, nullable=True)
@@ -122,7 +121,7 @@ class WoodPack(db.Model):
     # def weight_fact_for_tam(self):
     #     return self.volume_fact_for_tam * pl     # кг
 
-    #---
+    # ---
 
     status = db.Column(db.String(20), default="на_складе")
     notes = db.Column(db.Text, default="")
@@ -139,14 +138,13 @@ class Booking(db.Model):
     number = db.Column(db.String(50), unique=True, nullable=False)
     company_name = db.Column(db.String(100), nullable=False)
     adres = db.Column(db.String(250), default="")
-    status = db.Column(db.String(20), default="активная")      # активная / отправлена / отменена
+    status = db.Column(db.String(20), default="активная")  # активная / отправлена / отменена
     notes = db.Column(db.Text, default="")
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(ZoneInfo("Europe/Moscow")))
     created_by = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     price_per_m3 = db.Column(db.Float, default=0)  # руб
     contract = db.Column(db.String(50), default="")
-
 
     packs = db.relationship("WoodPack", backref="booking", lazy=True)
     shipment = db.relationship("Shipment", backref="booking", uselist=False)
